@@ -1,0 +1,12 @@
+{
+  "name": "infonet-a-1sem-25-intro-api-node",
+  "version": "1.0.0",
+  "description": "AUla de introdução API NODE JS",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["API", "NODE JS", "MYSQL"],
+  "author": "Ewerton",
+  "license": "MIT"
+}
