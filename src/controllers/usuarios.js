@@ -30,7 +30,7 @@ module.exports = {
     async cadastrarUsuarios(request, response) {
         try {
 
-            const { usu_nome, usu_email, usu_dt_nasc, usu_senha, usu_tipo, usu_cpf } = request.body;
+            const { nome, email, dt_nasc, senha, tipo, cpf } = request.body;
             const usu_ativo = 1;
 
             // instrução SQL
@@ -42,18 +42,23 @@ module.exports = {
             `;
 
             // definição dos dados a serem inseridos em um array
-            const values = [usu_nome, usu_email, usu_dt_nasc, usu_senha, usu_tipo, usu_ativo, usu_cpf];
+            const values = [nome, email, dt_nasc, senha, tipo, usu_ativo, cpf];
 
             // execução da instrução sql passando os parâmetros
             const [result] = await db.query(sql, values);
 
             // identificação do ID do registro inserido
-            const usu_id = result.insertId;
+            const dados = {
+                id: result.insertId, 
+                nome, 
+                email, 
+                tipo
+            };
 
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Cadastro de usuários',
-                dados: usu_id
+                dados: dados
             });
         } catch (error) {
             return response.status(500).json({
