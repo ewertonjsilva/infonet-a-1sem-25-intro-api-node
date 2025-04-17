@@ -31,7 +31,7 @@ module.exports = {
         try {
 
             const { nome, valor, unidade, tipo, disponivel, descricao, img, imagemDestaque } = request.body;
-            const destaque = 0;
+            const destaque = imagemDestaque ? 1 : 0;
             const img_destaque = imagemDestaque ? imagemDestaque : null;
 
             // instrução sql para inserção
@@ -43,7 +43,7 @@ module.exports = {
             `;
 
             // definição de array com os parâmetros que receberam os valores do front-end
-            const values = [nome, valor, unidade, parseInt(tipo), parseInt(disponivel), img, destaque, img_destaque, descricao];
+            const values = [nome, valor, unidade, tipo, disponivel, img, destaque, img_destaque, descricao];
 
             // executa a instrução de inserção no banco de dados       
             const confirmacao = await db.query(sql, values);
