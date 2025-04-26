@@ -33,7 +33,6 @@ module.exports = {
             const { nome, email, dt_nasc, senha, tipo, cpf } = request.body;
             const usu_ativo = 1;
 
-            // instrução SQL
             const sql = `
                 INSERT INTO usuarios 
                     (usu_nome, usu_email, usu_dt_nasc, usu_senha, usu_tipo, usu_ativo, usu_cpf) 
@@ -57,8 +56,8 @@ module.exports = {
 
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Cadastro de usuários',
-                dados: dados
+                mensagem: 'Cadastro de usuário efetuado com sucesso!',
+                dados
             });
         } catch (error) {
             return response.status(500).json({
@@ -70,10 +69,41 @@ module.exports = {
     },
     async editarUsuarios(request, response) {
         try {
+            // parâmetros recebidos pelo corpo da requisição
+            const { nome, email, dt_nasc, senha, tipo, ativo } = request.body;
+            // parâmetro recebido pela URL via params ex: /usuario/1
+            const { id } = request.params;
+            // instruções SQL
+            const sql = `
+                UPDATE usuarios SET 
+                    usu_nome = ?, usu_email = ?, usu_dt_nasc = ?, usu_senha = ?, usu_tipo = ?, usu_ativo = ? 
+                WHERE 
+                    usu_id = ?;
+            `;
+            // preparo do array com dados que serão atualizados
+            const values = [nome, email, dt_nasc, senha, tipo, ativo, id];
+            // execução e obtenção de confirmação da atualização realizada
+            const [result] = await db.query(sql, values);
+
+            if (result.affectedRows === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: `Usuário ${id} não encontrado!`,
+                    dados: result.affectedRows                    
+                });
+            }
+
+            const dados = {
+                id, 
+                nome, 
+                email, 
+                tipo
+            };
+
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Alteração no cadastro de usuário',
-                dados: null
+                mensagem: `Usuário ${id} atualizado com sucesso!`,
+                dados
             });
         } catch (error) {
             return response.status(500).json({
@@ -90,6 +120,87 @@ module.exports = {
                 mensagem: 'Exclusão de usuário',
                 dados: null
             });
+        } catch (error) {
+            return response.status(500).json({
+                sucesso: false,
+                mensagem: 'Erro na requisição.',
+                dados: error.message
+            });
+        }
+    },
+    async editarUsuariosAvancado(request, response) {
+        try {
+            const { id } = request.params;
+            const updates = {};
+            const values = [];
+    
+            // Verifica cada campo e o adiciona ao objeto 'updates' se existir no body
+            if (request.body.nome) {
+                updates.usu_nome = '?';
+                values.push(request.body.nome);
+            }
+            if (request.body.email) {
+                updates.usu_email = '?';
+                values.push(request.body.email);
+            }
+            if (request.body.dt_nasc) {
+                updates.usu_dt_nasc = '?';
+                values.push(request.body.dt_nasc);
+            }
+            if (request.body.senha) {
+                updates.usu_senha = '?';
+                values.push(request.body.senha);
+            }
+            if (request.body.tipo) {
+                updates.usu_tipo = '?';
+                values.push(request.body.tipo);
+            }
+            if (request.body.ativo !== undefined) { // Importante verificar se 'ativo' existe
+                updates.usu_ativo = '?';
+                values.push(request.body.ativo);
+            }
+    
+            // Se não houver campos para atualizar, retorna um erro
+            if (Object.keys(updates).length === 0) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Nenhum campo para atualizar foi fornecido.',
+                });
+            }
+    
+            // Constrói a parte SET da query dinamicamente
+            const setClauses = Object.keys(updates)
+                .map(key => `${key} = ${updates[key]}`)
+                .join(', ');
+    
+            const sql = `
+                UPDATE usuarios SET
+                    ${setClauses}
+                WHERE
+                    usu_id = ?;
+            `;
+    
+            values.push(id); // Adiciona o ID aos valores
+    
+            const [result] = await db.query(sql, values);
+    
+            if (result.affectedRows === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: `Usuário ${id} não encontrado!`,
+                    dados: result.affectedRows
+                });
+            }
+    
+            // Retorna os dados atualizados (apenas os que foram enviados)
+            const dadosAtualizados = { id, ...request.body };
+    
+            return response.status(200).json({
+                sucesso: true,
+                mensagem: `Usuário ${id} atualizado com sucesso!`,
+                dados: dadosAtualizados
+            });
+    
         } catch (error) {
             return response.status(500).json({
                 sucesso: false,

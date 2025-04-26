@@ -6,7 +6,7 @@ const ProdutosController = require('../controllers/produtos');
 
 router.get('/usuarios', UsuariosController.listarUsuarios); 
 router.post('/usuarios', UsuariosController.cadastrarUsuarios); 
-router.patch('/usuarios', UsuariosController.editarUsuarios); 
+router.patch('/usuarios/:id', UsuariosController.editarUsuarios); 
 router.delete('/usuarios', UsuariosController.apagarUsuarios); 
 
 router.get('/produtos', ProdutosController.listarProdutos); 
