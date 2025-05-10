@@ -129,7 +129,7 @@ module.exports = {
             const [result] = await db.query(sql, values);
 
             if (result.affectedRows === 0) {
-                return res.status(404).json({
+                return response.status(404).json({
                     sucesso: false,
                     mensagem: `Usuário ${usu_id} não encontrado!`,
                     dados: null
