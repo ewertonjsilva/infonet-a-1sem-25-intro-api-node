@@ -2,23 +2,66 @@ const db = require('../database/connection');
 
 module.exports = {
     async listarProdutos(request, response) {
+
+        const { id, nome, idTipoProd, valor, page = 1, limit = 5 } = request.query;
+        const offset = (parseInt(page) - 1) * parseInt(limit);
+        const prd_disponivel = 1;
+        
         try {
 
-            const sql = `
+            const [[{ vlr_max }]] = await db.query('SELECT MAX(prd_valor) as vlr_max FROM produtos');
+            const valorLimite = parseFloat(valor ?? vlr_max + 1);
+            
+            // contagem total produtos disponíveis
+            const countQuery = `
                 SELECT 
-                    prd_id, prd_nome, prd_valor, prd_unidade, ptp_id, prd_disponivel = 1 AS prd_disponivel, 
-                    prd_img, prd_destaque = 1 AS prd_destaque, prd_img_destaque, prd_descricao 
-                FROM produtos;
+                    COUNT(*) AS total 
+                FROM 
+                    produtos prd 
+                WHERE 
+                    prd.prd_disponivel = ? 
+                    AND prd.prd_nome LIKE ? 
+                    AND prd.ptp_id LIKE ? 
+                    AND prd.prd_valor < ? 
+                    ${id ? 'AND prd.prd_id = ?' : ''};
             `;
 
-            const [rows] = await db.query(sql);
+            const countValues = [prd_disponivel, `%${nome ?? ''}%`, `%${idTipoProd ?? ''}%`, valorLimite, id];
+              
+            const [[{ total }]] = await db.query(countQuery, countValues);
+
+            // Listagem itens
+            const listQuery = `
+                SELECT 
+                    prd.prd_id, prd.prd_nome, prd.prd_valor, prd.prd_unidade, pdt.ptp_icone, 
+                    prd.prd_img, prd.prd_descricao 
+                FROM produtos prd 
+                INNER JOIN 
+                    produto_tipos pdt ON pdt.ptp_id = prd.ptp_id 
+                WHERE 
+                    prd.prd_disponivel = ? 
+                    AND prd.prd_nome LIKE ? 
+                    AND prd.ptp_id LIKE ?  
+                    ${id ? 'AND prd.prd_id = ?' : ''}
+                    AND prd.prd_valor < ? 
+                LIMIT ?, ?;
+            `;
+                        
+            const listValues = id
+                ? [prd_disponivel, `%${nome ?? ''}%`, `%${idTipoProd ?? ''}%`, id, valorLimite, offset, parseInt(limit)]
+                : [prd_disponivel, `%${nome ?? ''}%`, `%${idTipoProd ?? ''}%`, valorLimite, offset, parseInt(limit)];
+    
+            const [produtos] = await db.query(listQuery, listValues);
+
+            // total de produtos no cabeçalho
+            response.setHeader('X-Total-Count', total);
 
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Lista de produtos',
-                itens: rows.length,
-                dados: rows
+                mensagem: 'Lista de produtos.',
+                dados: produtos             
             });
+
         } catch (error) {
             return response.status(500).json({
                 sucesso: false,
@@ -34,6 +77,14 @@ module.exports = {
             const destaque = imagemDestaque ? 1 : 0;
             const img_destaque = imagemDestaque ? imagemDestaque : null;
 
+            if (!nome || !valor || !unidade || !tipo || typeof disponivel === 'undefined') {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Campos obrigatórios estão ausentes ou inválidos.',
+                });
+            }
+            // bibliotecas como Joi (sem typescript) ou Zod (typescript) podem auxiliar nas validações.
+
             // instrução sql para inserção
             const sql = `
                 INSERT INTO produtos 
@@ -47,7 +98,7 @@ module.exports = {
 
             // executa a instrução de inserção no banco de dados       
             const confirmacao = await db.query(sql, values);
-            
+
             // Exibe o id do registro inserido
             const prd_id = confirmacao[0].insertId;
             // Mensagem de retorno no formato JSON
