@@ -51,7 +51,17 @@ module.exports = {
                 ? [prd_disponivel, `%${nome ?? ''}%`, `%${idTipoProd ?? ''}%`, id, valorLimite, offset, parseInt(limit)]
                 : [prd_disponivel, `%${nome ?? ''}%`, `%${idTipoProd ?? ''}%`, valorLimite, offset, parseInt(limit)];
     
-            const [produtos] = await db.query(listQuery, listValues);
+            const [produtos] = await db.query(listQuery, listValues); 
+
+            const dados = produtos.map( produto => ({
+                id: produto.prd_id,
+                nome: produto.prd_nome,
+                valor: parseFloat(produto.prd_valor).toFixed(2),
+                unidade: produto.prd_unidade,
+                icone: produto.ptp_icone,
+                img: produto.prd_img,
+                descricao: produto.prd_descricao
+            }));
 
             // total de produtos no cabeçalho
             response.setHeader('X-Total-Count', total);
@@ -59,7 +69,7 @@ module.exports = {
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Lista de produtos.',
-                dados: produtos             
+                dados             
             });
 
         } catch (error) {

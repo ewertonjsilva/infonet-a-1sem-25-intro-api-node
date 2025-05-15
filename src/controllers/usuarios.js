@@ -272,8 +272,8 @@ module.exports = {
     async login(request, response) {
         try {
 
-            const { usu_email, usu_senha } = request.body;
-
+            const { email, senha } = request.query;
+            
             const sql = `
                 SELECT 
                     usu_id, usu_nome, usu_tipo 
@@ -283,7 +283,7 @@ module.exports = {
                     usu_email = ? AND usu_senha = ? AND usu_ativo = 1;
             `;
 
-            const values = [usu_email, usu_senha];
+            const values = [email, senha];
 
             const [rows] = await db.query(sql, values);
             const nItens = rows.length;
@@ -296,10 +296,16 @@ module.exports = {
                 });
             }
 
+            const dados = rows.map(usuario => ({
+                id: usuario.usu_id, 
+                nome: usuario.usu_nome, 
+                tipo: usuario.usu_tipo
+            }));
+
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Login efetuado com sucesso',
-                dados: rows
+                dados
             });
         } catch (error) {
             return response.status(500).json({
