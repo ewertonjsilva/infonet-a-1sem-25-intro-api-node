@@ -3,79 +3,52 @@ const db = require('../database/connection');
 module.exports = {
     async listarProdutos(request, response) {
 
-        const { id, nome, idTipoProd, valor, page = 1, limit = 5 } = request.query;
-        const offset = (parseInt(page) - 1) * parseInt(limit);
-        const prd_disponivel = 1;
-        
+        const { id, nome, tipo, valor, disponivel = 1 } = request.query;
+
         try {
-
             const [[{ vlr_max }]] = await db.query('SELECT MAX(prd_valor) as vlr_max FROM produtos');
-            const valorLimite = parseFloat(valor ?? vlr_max + 1);
-            
-            // contagem total produtos disponíveis
-            const countQuery = `
-                SELECT 
-                    COUNT(*) AS total 
-                FROM 
-                    produtos prd 
-                WHERE 
-                    prd.prd_disponivel = ? 
-                    AND prd.prd_nome LIKE ? 
-                    AND prd.ptp_id LIKE ? 
-                    AND prd.prd_valor < ? 
-                    ${id ? 'AND prd.prd_id = ?' : ''};
-            `;
+            const valorLimite = parseFloat(valor ?? vlr_max);
 
-            const countValues = [prd_disponivel, `%${nome ?? ''}%`, `%${idTipoProd ?? ''}%`, valorLimite, id];
-              
-            const [[{ total }]] = await db.query(countQuery, countValues);
-
-            // Listagem itens
             const listQuery = `
-                SELECT 
-                    prd.prd_id, prd.prd_nome, prd.prd_valor, prd.prd_unidade, pdt.ptp_icone, 
-                    prd.prd_img, prd.prd_descricao 
-                FROM produtos prd 
-                INNER JOIN 
-                    produto_tipos pdt ON pdt.ptp_id = prd.ptp_id 
-                WHERE 
-                    prd.prd_disponivel = ? 
-                    AND prd.prd_nome LIKE ? 
-                    AND prd.ptp_id LIKE ?  
+                SELECT prd.prd_id, prd.prd_nome, prd.prd_valor, prd.prd_unidade,
+                        pdt.ptp_icone, prd.prd_img, prd.prd_descricao
+                FROM produtos prd
+                INNER JOIN produto_tipos pdt ON pdt.ptp_id = prd.ptp_id
+                WHERE prd.prd_disponivel = ?
+                    AND prd.prd_nome LIKE ?
+                    AND prd.ptp_id LIKE ?
                     ${id ? 'AND prd.prd_id = ?' : ''}
-                    AND prd.prd_valor < ? 
-                LIMIT ?, ?;
+                    AND prd.prd_valor <= ?
             `;
-                        
-            const listValues = id
-                ? [prd_disponivel, `%${nome ?? ''}%`, `%${idTipoProd ?? ''}%`, id, valorLimite, offset, parseInt(limit)]
-                : [prd_disponivel, `%${nome ?? ''}%`, `%${idTipoProd ?? ''}%`, valorLimite, offset, parseInt(limit)];
-    
-            const [produtos] = await db.query(listQuery, listValues); 
 
-            const dados = produtos.map( produto => ({
+            const listValues = id
+                ? [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, id, valorLimite]
+                : [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, valorLimite];
+
+            const [produtos] = await db.query(listQuery, listValues);
+
+            const dados = produtos.map(produto => ({
                 id: produto.prd_id,
                 nome: produto.prd_nome,
-                valor: parseFloat(produto.prd_valor).toFixed(2),
+                valor: produto.prd_valor,
                 unidade: produto.prd_unidade,
                 icone: produto.ptp_icone,
-                img: produto.prd_img,
+                imgProduto: produto.prd_img,
                 descricao: produto.prd_descricao
             }));
 
-            // total de produtos no cabeçalho
-            response.setHeader('X-Total-Count', total);
-
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Lista de produtos.',
-                dados             
+                mensagem: 'Lista de produtos',
+                nItens: dados.length,
+                dados
             });
 
         } catch (error) {
+            console.error('Erro ao listar produtos:', error);
             return response.status(500).json({
                 sucesso: false,
-                mensagem: 'Erro na requisição.',
+                mensagem: 'Erro ao listar produtos.',
                 dados: error.message
             });
         }
