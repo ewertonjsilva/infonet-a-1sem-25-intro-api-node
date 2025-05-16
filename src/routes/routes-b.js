@@ -9,7 +9,7 @@ router.post('/ingredientes', IngredientesController.cadastrarIngredientes);
 router.patch('/ingredientes', IngredientesController.editarIngredientes); 
 router.delete('/ingredientes', IngredientesController.apagarIngredientes); 
 
-router.post('/cidades/listar-cidades', CidadesController.listarCidades);
+router.get('/cidades/listar-cidades', CidadesController.listarCidades);
 router.get('/cidades/listar-ufs', CidadesController.listarUfs);
 
 module.exports = router;

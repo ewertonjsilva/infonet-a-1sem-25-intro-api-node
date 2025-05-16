@@ -5,8 +5,9 @@ const db = require('../database/connection');
 module.exports = {
     async listarIngredientes(request, response) {
         try {
-            const { nome } = request.body; 
-            const ing_nome = nome ? `%${nome}%` : `%%`;
+            const { nome } = request.query;             
+            
+            const ing_nome = nome ? `%${nome}%` : `%`;
             const sql = `
                 SELECT 
                     ing_id, ing_nome, ing_img, ing_custo_adicional 
@@ -17,14 +18,22 @@ module.exports = {
             `;
             
             const values = [ing_nome];
+            
             const [rows] = await db.query(sql, values);
-            const nItens = rows.length;
+            const nItens = rows.length; 
+
+            const dados = rows.map(ingrediente => ({
+                id: ingrediente.ing_id, 
+                nome: ingrediente.ing_nome, 
+                img: ingrediente.ing_img, 
+                custo_adicional: ingrediente.ing_custo_adicional 
+            }));
 
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Lista de ingredientes.',
-                dados: rows,
-                nItens
+                nItens, 
+                dados                
             });
         } catch (error) {
             return response.status(500).json({
