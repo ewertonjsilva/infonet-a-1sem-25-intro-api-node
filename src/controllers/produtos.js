@@ -3,11 +3,29 @@ const db = require('../database/connection');
 module.exports = {
     async listarProdutos(request, response) {
 
-        const { id, nome, tipo, valor, disponivel = 1 } = request.query;
+        const { id, nome, tipo, valor, disponivel = 1, page = 1, limit = 5 } = request.query; 
+        const offset = (parseInt(page) - 1) * parseInt(limit);
 
         try {
             const [[{ vlr_max }]] = await db.query('SELECT MAX(prd_valor) as vlr_max FROM produtos');
-            const valorLimite = parseFloat(valor ?? vlr_max);
+            const valorLimite = parseFloat(valor ?? vlr_max); 
+
+            const countQuery = `
+                SELECT COUNT(*) AS total
+                FROM produtos prd
+                INNER JOIN produto_tipos pdt ON pdt.ptp_id = prd.ptp_id
+                WHERE prd.prd_disponivel = ?
+                    AND prd.prd_nome LIKE ?
+                    AND prd.ptp_id LIKE ?
+                    ${id ? 'AND prd.prd_id = ?' : ''}
+                    AND prd.prd_valor <= ?
+            `;
+
+            const countValues = id
+                ? [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, id, valorLimite]
+                : [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, valorLimite];
+                
+            const [[{ total }]] = await db.query(countQuery, countValues);
 
             const listQuery = `
                 SELECT prd.prd_id, prd.prd_nome, prd.prd_valor, prd.prd_unidade,
@@ -18,12 +36,13 @@ module.exports = {
                     AND prd.prd_nome LIKE ?
                     AND prd.ptp_id LIKE ?
                     ${id ? 'AND prd.prd_id = ?' : ''}
-                    AND prd.prd_valor <= ?
+                    AND prd.prd_valor <= ? 
+                LIMIT ?, ?
             `;
 
             const listValues = id
-                ? [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, id, valorLimite]
-                : [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, valorLimite];
+                ? [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, id, valorLimite, offset, parseInt(limit)]
+                : [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, valorLimite, offset, parseInt(limit)];
 
             const [produtos] = await db.query(listQuery, listValues);
 
@@ -37,6 +56,7 @@ module.exports = {
                 descricao: produto.prd_descricao
             }));
 
+            response.setHeader('X-Total-Count', total);
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Lista de produtos',
@@ -139,3 +159,4 @@ module.exports = {
         }
     },
 };  
+
