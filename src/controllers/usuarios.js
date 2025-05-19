@@ -131,7 +131,7 @@ module.exports = {
             if (result.affectedRows === 0) {
                 return response.status(404).json({
                     sucesso: false,
-                    mensagem: `Usuário ${usu_id} não encontrado!`,
+                    mensagem: `Usuário ${id} não encontrado!`,
                     dados: null
                 });
             }
