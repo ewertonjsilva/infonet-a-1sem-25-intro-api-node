@@ -3,12 +3,12 @@ const db = require('../database/connection');
 module.exports = {
     async listarProdutos(request, response) {
 
-        const { id, nome, tipo, valor, disponivel = 1, page = 1, limit = 5 } = request.query; 
+        const { id, nome, tipo, valor, disponivel = 1, page = 1, limit = 5 } = request.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
 
         try {
             const [[{ vlr_max }]] = await db.query('SELECT MAX(prd_valor) as vlr_max FROM produtos');
-            const valorLimite = parseFloat(valor ?? vlr_max); 
+            const valorLimite = parseFloat(valor ?? vlr_max);
 
             const countQuery = `
                 SELECT COUNT(*) AS total
@@ -24,7 +24,7 @@ module.exports = {
             const countValues = id
                 ? [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, id, valorLimite]
                 : [disponivel, `%${nome ?? ''}%`, `%${tipo ?? ''}%`, valorLimite];
-                
+
             const [[{ total }]] = await db.query(countQuery, countValues);
 
             const listQuery = `
@@ -158,5 +158,84 @@ module.exports = {
             });
         }
     },
-};  
+    async listarIngredientesDoProduto(request, response) {
+        try {
+            const { id } = request.params;
+
+            const sql = `
+                SELECT 
+                    p.prd_id AS id,
+                    p.prd_nome AS nome,
+                    p.prd_valor AS valor,
+                    p.prd_unidade AS unidade,
+                    p.ptp_id AS tipo,
+                    p.prd_disponivel AS disponivel,
+                    p.prd_img AS img,
+                    p.prd_destaque AS destaque,
+                    p.prd_img_destaque AS img_destaque,
+                    p.prd_descricao AS descricao,
+    
+                    i.ing_id AS ingrediente_id,
+                    i.ing_nome AS ingrediente_nome,
+    
+                    pi.quantidade AS quantidade,
+                    pi.unidade AS unidade_ingrediente,
+                    pi.observacao AS observacao
+    
+                FROM 
+                    produtos p
+                JOIN 
+                    produto_ingredientes pi ON pi.prd_id = p.prd_id
+                JOIN 
+                    ingredientes i ON i.ing_id = pi.ing_id
+                WHERE 
+                    p.prd_id = ?;
+            `;
+
+            const [rows] = await db.query(sql, [id]);
+
+            if (rows.length === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: `Produto com id ${id} não encontrado ou sem ingredientes.`,
+                    dados: null
+                });
+            }
+
+            // Extrai dados do produto (só do primeiro registro, pois todos têm os mesmos)
+            const produto = {
+                id: rows[0].id,
+                nome: rows[0].nome,
+                valor: parseFloat(rows[0].valor).toFixed(2),
+                unidade: rows[0].unidade,
+                tipo: rows[0].tipo,
+                disponivel: !!rows[0].disponivel,
+                img: rows[0].img,
+                destaque: !!rows[0].destaque,
+                img_destaque: rows[0].img_destaque,
+                descricao: rows[0].descricao,
+                ingredientes: rows.map(row => ({
+                    id: row.ingrediente_id,
+                    nome: row.ingrediente_nome,
+                    quantidade: row.quantidade,
+                    unidade: row.unidade_ingrediente,
+                    observacao: row.observacao
+                }))
+            };
+
+            return response.status(200).json({
+                sucesso: true,
+                mensagem: `Ingredientes do produto ${produto.nome}`,
+                dados: produto
+            });
+
+        } catch (error) {
+            return response.status(500).json({
+                sucesso: false,
+                mensagem: 'Erro na requisição.',
+                dados: error.message
+            });
+        }
+    },
+};
 
