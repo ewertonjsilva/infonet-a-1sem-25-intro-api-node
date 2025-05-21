@@ -181,7 +181,7 @@ module.exports = {
                     i.ing_img AS imagemIngrediente,     
                     i.ing_custo_adicional AS custoAdicionalIngrediente, 	
                     
-                    pi.prd_ing_adicional AS adicionalProdutoIngrediente 
+                    pi.prd_ing_adicional =  1 AS adicionalProdutoIngrediente 
                 FROM 	
                     produtos p 
                 JOIN 	
@@ -211,9 +211,7 @@ module.exports = {
                 valor: parseFloat(rows[0].valor).toFixed(2),
                 unidade: rows[0].unidade,                
                 disponivel: !!rows[0].disponivel,
-                img: rows[0].img,
-                destaque: !!rows[0].destaque,
-                img_destaque: rows[0].img_destaque,
+                img: rows[0].imagem,
                 descricao: rows[0].descricao, 
                 tipoNome: rows[0].nomeTipo, 
                 tipoIcone: rows[0].iconeTipo,                 
@@ -221,7 +219,8 @@ module.exports = {
                     id: row.idIngrediente,
                     nome: row.nomeIngrediente,
                     quantidade: row.imagemIngrediente,
-                    unidade: row.custoAdicionalIngrediente
+                    unidade: row.custoAdicionalIngrediente, 
+                    adicional: row.adicionalProdutoIngrediente
                 }))
             };
 
