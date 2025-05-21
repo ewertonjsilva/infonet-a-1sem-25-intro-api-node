@@ -4,7 +4,7 @@ SELECT prd_id, prd_nome, prd_valor, prd_unidade, ptp_id, prd_disponivel, prd_img
 SELECT ptp_id, ptp_nome, ptp_icone FROM produto_tipos; 
 SELECT mes_id, mes_nome, mes_status, mes_lugares, ped_id FROM mesas; 
 SELECT ped_id, ped_data, usu_id, end_id, ped_tipo, ped_status, ped_desconto, ped_vlr_pago, ped_tp_pag, ped_pago FROM pedidos; 
-SELECT end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal FROM endereco_clientes; 
+SELECT end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal FROM cliente_enderecos; 
 SELECT cid_id, cid_nome, cid_uf FROM cidades;
 SELECT usu_id, cli_cel, cli_pts FROM clientes; 
 SELECT usu_id, usu_nome, usu_email, usu_cpf, usu_dt_nasc, usu_senha, usu_tipo, usu_ativo FROM usuarios;
@@ -78,27 +78,28 @@ INNER JOIN ingredientes ing ON ing.ing_id = pi.ing_id
 WHERE pi.prd_id = 1 AND pi.prd_ing_adicional = 1;  
 
 -- listar clientes (repete devido a inserção de mais de um endereço por cliente)
-SELECT us.usu_nome, us.usu_dt_nasc, cli.cli_cel, cli.cli_pts, cid.cid_nome  
+SELECT us.usu_id, us.usu_nome, us.usu_dt_nasc, cli.cli_cel, cli.cli_pts, cid.cid_nome  
 FROM clientes cli 
-RIGHT JOIN usuarios us ON us.usu_id 
-INNER JOIN endereco_clientes edcl ON edcl.usu_id = cli.usu_id 
+INNER JOIN usuarios us ON us.usu_id = cli.usu_id 
+INNER JOIN cliente_enderecos edcl ON edcl.usu_id = cli.usu_id 
 INNER JOIN cidades cid ON cid.cid_id = edcl.cid_id 
-WHERE us.usu_ativo = 1 AND cli.cli_cel = '11988885678';  
+WHERE us.usu_ativo = 1;  
 
 -- só traz o cliente com endereço principal
-SELECT us.usu_nome, us.usu_dt_nasc, cl.cli_cel, cl.cli_pts, cid.cid_nome FROM clientes cl
-INNER JOIN usuarios us ON us.usu_id = cl.usu_id 
-INNER JOIN endereco_clientes edcl ON edcl.usu_id = cl.usu_id 
+SELECT us.usu_id, us.usu_nome, us.usu_dt_nasc, cli.cli_cel, cli.cli_pts, cid.cid_nome  
+FROM clientes cli 
+INNER JOIN usuarios us ON us.usu_id = cli.usu_id 
+INNER JOIN cliente_enderecos edcl ON edcl.usu_id = cli.usu_id 
 INNER JOIN cidades cid ON cid.cid_id = edcl.cid_id 
-WHERE us.usu_ativo = 1 AND edcl.end_principal = 1 AND cl.cli_cel = '11988885678';  
+WHERE us.usu_ativo = 1 AND edcl.end_principal = 1;  
 
 -- lista mesmo sem ter o endereço
-SELECT us.usu_nome, us.usu_dt_nasc, cl.cli_cel, cl.cli_pts, cid.cid_nome 
-FROM clientes cl
-INNER JOIN usuarios us ON us.usu_id = cl.usu_id 
-LEFT JOIN endereco_clientes edcl ON edcl.usu_id = cl.usu_id AND edcl.end_principal = 1
+SELECT us.usu_id, us.usu_nome, us.usu_dt_nasc, cli.cli_cel, cli.cli_pts, cid.cid_nome  
+FROM clientes cli 
+INNER JOIN usuarios us ON us.usu_id = cli.usu_id 
+LEFT JOIN cliente_enderecos edcl ON edcl.usu_id = cli.usu_id  
 LEFT JOIN cidades cid ON cid.cid_id = edcl.cid_id 
-WHERE us.usu_ativo = 1 AND cl.cli_cel = '11988885678'; 
+WHERE us.usu_ativo = 1;
 
 -- lista verificando o endereço principal se houver endereço cadastrado
 SELECT 
@@ -113,16 +114,49 @@ LEFT JOIN (
     SELECT 
         edcl.usu_id, 
         edcl.cid_id 
-    FROM endereco_clientes edcl 
+    FROM cliente_enderecos edcl 
     WHERE edcl.end_principal = 1
 ) edcl_principal ON edcl_principal.usu_id = cl.usu_id
 LEFT JOIN cidades cid ON cid.cid_id = edcl_principal.cid_id 
 WHERE us.usu_ativo = 1 
-AND cl.cli_cel = '18912345678'; -- 11988885678 18912345678
+AND cl.cli_cel = '18912233100'; -- 14911112222 14922334444 14911113111 18912233100
 
 
 
-INSERT INTO produto_tipos 
-    (ptp_nome, ptp_icone) 
-VALUES 
-    (?, ?); 
+-- INNER JOIN INGREDIENTES DE UM PRODUTO
+SELECT 	
+	p.prd_id AS id,	
+    p.prd_nome AS nome,	
+    p.prd_valor AS valor,	
+    p.prd_unidade AS unidade,	
+    p.prd_disponivel AS disponivel,	
+    p.prd_img AS imagem,		
+    p.prd_descricao AS descricao,	
+    	
+    pdtp.ptp_nome AS nomeTipo, 
+    pdtp.ptp_icone AS iconeTipo, 
+    
+    
+    i.ing_id AS idIngrediente,	
+    i.ing_nome AS nomeIngrediente,     
+    i.ing_img AS imagemIngrediente,     
+    i.ing_custo_adicional AS custoAdicionalIngrediente, 	
+    
+    pi.prd_ing_adicional AS adicionalProdutoIngrediente 
+FROM 	
+	produtos p 
+JOIN 	
+	produto_ingredientes pi ON pi.prd_id = p.prd_id 
+JOIN 	
+    ingredientes i ON i.ing_id = pi.ing_id 
+JOIN 
+	produto_tipos pdtp ON pdtp.ptp_id = p.ptp_id 
+WHERE 	
+	p.prd_id = 1;
+
+
+-- Item aleatório
+SELECT prd_img_destaque FROM produtos 
+WHERE prd_destaque = 1 
+ORDER BY RAND() 
+LIMIT 3;

@@ -163,32 +163,34 @@ module.exports = {
             const { id } = request.params;
 
             const sql = `
-                SELECT 
-                    p.prd_id AS id,
-                    p.prd_nome AS nome,
-                    p.prd_valor AS valor,
-                    p.prd_unidade AS unidade,
-                    p.ptp_id AS tipo,
-                    p.prd_disponivel AS disponivel,
-                    p.prd_img AS img,
-                    p.prd_destaque AS destaque,
-                    p.prd_img_destaque AS img_destaque,
-                    p.prd_descricao AS descricao,
-    
-                    i.ing_id AS ingrediente_id,
-                    i.ing_nome AS ingrediente_nome,
-    
-                    pi.quantidade AS quantidade,
-                    pi.unidade AS unidade_ingrediente,
-                    pi.observacao AS observacao
-    
-                FROM 
-                    produtos p
+                SELECT 	
+                    p.prd_id AS id,	
+                    p.prd_nome AS nome,	
+                    p.prd_valor AS valor,	
+                    p.prd_unidade AS unidade,	
+                    p.prd_disponivel AS disponivel,	
+                    p.prd_img AS imagem,		
+                    p.prd_descricao AS descricao,	
+                        
+                    pdtp.ptp_nome AS nomeTipo, 
+                    pdtp.ptp_icone AS iconeTipo, 
+                    
+                    
+                    i.ing_id AS idIngrediente,	
+                    i.ing_nome AS nomeIngrediente,     
+                    i.ing_img AS imagemIngrediente,     
+                    i.ing_custo_adicional AS custoAdicionalIngrediente, 	
+                    
+                    pi.prd_ing_adicional AS adicionalProdutoIngrediente 
+                FROM 	
+                    produtos p 
+                JOIN 	
+                    produto_ingredientes pi ON pi.prd_id = p.prd_id 
+                JOIN 	
+                    ingredientes i ON i.ing_id = pi.ing_id 
                 JOIN 
-                    produto_ingredientes pi ON pi.prd_id = p.prd_id
-                JOIN 
-                    ingredientes i ON i.ing_id = pi.ing_id
-                WHERE 
+                    produto_tipos pdtp ON pdtp.ptp_id = p.ptp_id 
+                WHERE 	
                     p.prd_id = ?;
             `;
 
@@ -202,24 +204,24 @@ module.exports = {
                 });
             }
 
-            // Extrai dados do produto (só do primeiro registro, pois todos têm os mesmos)
+            // Extrai dados do produto (só do primeiro registro, pois todos têm os mesmos valores)
             const produto = {
                 id: rows[0].id,
                 nome: rows[0].nome,
                 valor: parseFloat(rows[0].valor).toFixed(2),
-                unidade: rows[0].unidade,
-                tipo: rows[0].tipo,
+                unidade: rows[0].unidade,                
                 disponivel: !!rows[0].disponivel,
                 img: rows[0].img,
                 destaque: !!rows[0].destaque,
                 img_destaque: rows[0].img_destaque,
-                descricao: rows[0].descricao,
+                descricao: rows[0].descricao, 
+                tipoNome: rows[0].nomeTipo, 
+                tipoIcone: rows[0].iconeTipo,                 
                 ingredientes: rows.map(row => ({
-                    id: row.ingrediente_id,
-                    nome: row.ingrediente_nome,
-                    quantidade: row.quantidade,
-                    unidade: row.unidade_ingrediente,
-                    observacao: row.observacao
+                    id: row.idIngrediente,
+                    nome: row.nomeIngrediente,
+                    quantidade: row.imagemIngrediente,
+                    unidade: row.custoAdicionalIngrediente
                 }))
             };
 

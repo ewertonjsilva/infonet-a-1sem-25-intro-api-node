@@ -8,6 +8,7 @@ INSERT INTO usuarios (usu_id, usu_nome, usu_email, usu_senha, usu_tipo, usu_ativ
 INSERT INTO usuarios (usu_id, usu_nome, usu_email, usu_senha, usu_tipo, usu_ativo, usu_dt_nasc, usu_cpf) VALUES (4, 'Severino Márcio João Ribeiro', 'severino-ribeiro95@advocaciand.adv.br', '123456', 2, true, '2000-02-18', 36068098834);
 INSERT INTO usuarios (usu_id, usu_nome, usu_email, usu_senha, usu_tipo, usu_ativo, usu_dt_nasc, usu_cpf) VALUES (5, 'Mariah Sebastiana Assunção', 'mariah_assuncao@queirozgalvao.com', '123456', 2, false, '1982-12-30', 83376065845);
 INSERT INTO usuarios (usu_id, usu_nome, usu_email, usu_senha, usu_tipo, usu_ativo, usu_dt_nasc, usu_cpf) VALUES (6, 'Rosângela Marina Nicole Aragão', 'rosangela_marina_aragao@vivo.com.br', '123456', 2, true, '1970-10-22', 12694357873);
+INSERT INTO usuarios (usu_id, usu_nome, usu_email, usu_senha, usu_tipo, usu_ativo, usu_dt_nasc, usu_cpf) VALUES (7, 'Bernardo Celestino Brandão', 'bernacel@terra.com.br', '123456', 2, true, '1962-06-12', 69386298031);
 
 -- TIPOS DE PRODUTO
 INSERT INTO produto_tipos (ptp_id, ptp_nome, ptp_icone) VALUES (1, 'Lanche', 'lanche.svg'); 
@@ -36,6 +37,7 @@ INSERT INTO produtos (prd_id, prd_nome, prd_valor, prd_unidade, ptp_id, prd_disp
 INSERT INTO clientes (usu_id, cli_cel, cli_pts) VALUES (4, '14911112222', 0);
 INSERT INTO clientes (usu_id, cli_cel, cli_pts) VALUES (5, '14922334444', 50);
 INSERT INTO clientes (usu_id, cli_cel, cli_pts) VALUES (6, '14911113111', 0);
+INSERT INTO clientes (usu_id, cli_cel, cli_pts) VALUES (7, '18912233100', 10);
 
 -- ENDERECO CLIENTES
 INSERT INTO cliente_enderecos (end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) VALUES (1, 4, 'Rua dos Salgueiros', '645', 'Mangabeira', 'Fundos', 3884, true, false); 
