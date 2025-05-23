@@ -209,17 +209,17 @@ module.exports = {
                 id: rows[0].id,
                 nome: rows[0].nome,
                 valor: parseFloat(rows[0].valor).toFixed(2),
-                unidade: rows[0].unidade,                
+                unidade: rows[0].unidade,
                 disponivel: !!rows[0].disponivel,
                 img: rows[0].imagem,
-                descricao: rows[0].descricao, 
-                tipoNome: rows[0].nomeTipo, 
-                tipoIcone: rows[0].iconeTipo,                 
+                descricao: rows[0].descricao,
+                tipoNome: rows[0].nomeTipo,
+                tipoIcone: rows[0].iconeTipo,
                 ingredientes: rows.map(row => ({
                     id: row.idIngrediente,
                     nome: row.nomeIngrediente,
                     quantidade: row.imagemIngrediente,
-                    unidade: row.custoAdicionalIngrediente, 
+                    unidade: row.custoAdicionalIngrediente,
                     adicional: row.adicionalProdutoIngrediente
                 }))
             };
@@ -229,6 +229,33 @@ module.exports = {
                 mensagem: `Ingredientes do produto ${produto.nome}`,
                 dados: produto
             });
+
+        } catch (error) {
+            return response.status(500).json({
+                sucesso: false,
+                mensagem: 'Erro na requisição.',
+                dados: error.message
+            });
+        }
+    },
+    async listarPromocoes(request, response) {
+        try {
+
+            const sql= `
+                SELECT prd_img_destaque AS imgDestaque FROM produtos 
+                WHERE prd_destaque = 1 
+                ORDER BY RAND() 
+                LIMIT 3;
+            `;
+
+            const [promo] = await db.query(sql); 
+
+            return response.status(200).json({
+                sucesso: true,
+                mensagem: `Produtos em promoção.`,
+                dados: promo
+            });
+
 
         } catch (error) {
             return response.status(500).json({

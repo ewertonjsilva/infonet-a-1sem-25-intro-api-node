@@ -77,52 +77,6 @@ FROM produto_ingredientes pi
 INNER JOIN ingredientes ing ON ing.ing_id = pi.ing_id 
 WHERE pi.prd_id = 1 AND pi.prd_ing_adicional = 1;  
 
--- listar clientes (repete devido a inserção de mais de um endereço por cliente)
-SELECT us.usu_id, us.usu_nome, us.usu_dt_nasc, cli.cli_cel, cli.cli_pts, cid.cid_nome  
-FROM clientes cli 
-INNER JOIN usuarios us ON us.usu_id = cli.usu_id 
-INNER JOIN cliente_enderecos edcl ON edcl.usu_id = cli.usu_id 
-INNER JOIN cidades cid ON cid.cid_id = edcl.cid_id 
-WHERE us.usu_ativo = 1;  
-
--- só traz o cliente com endereço principal
-SELECT us.usu_id, us.usu_nome, us.usu_dt_nasc, cli.cli_cel, cli.cli_pts, cid.cid_nome  
-FROM clientes cli 
-INNER JOIN usuarios us ON us.usu_id = cli.usu_id 
-INNER JOIN cliente_enderecos edcl ON edcl.usu_id = cli.usu_id 
-INNER JOIN cidades cid ON cid.cid_id = edcl.cid_id 
-WHERE us.usu_ativo = 1 AND edcl.end_principal = 1;  
-
--- lista mesmo sem ter o endereço
-SELECT us.usu_id, us.usu_nome, us.usu_dt_nasc, cli.cli_cel, cli.cli_pts, cid.cid_nome  
-FROM clientes cli 
-INNER JOIN usuarios us ON us.usu_id = cli.usu_id 
-LEFT JOIN cliente_enderecos edcl ON edcl.usu_id = cli.usu_id  
-LEFT JOIN cidades cid ON cid.cid_id = edcl.cid_id 
-WHERE us.usu_ativo = 1;
-
--- lista verificando o endereço principal se houver endereço cadastrado
-SELECT 
-    us.usu_nome, 
-    us.usu_dt_nasc, 
-    cl.cli_cel, 
-    cl.cli_pts, 
-    cid.cid_nome 
-FROM clientes cl
-INNER JOIN usuarios us ON us.usu_id = cl.usu_id 
-LEFT JOIN (
-    SELECT 
-        edcl.usu_id, 
-        edcl.cid_id 
-    FROM cliente_enderecos edcl 
-    WHERE edcl.end_principal = 1
-) edcl_principal ON edcl_principal.usu_id = cl.usu_id
-LEFT JOIN cidades cid ON cid.cid_id = edcl_principal.cid_id 
-WHERE us.usu_ativo = 1 
-AND cl.cli_cel = '18912233100'; -- 14911112222 14922334444 14911113111 18912233100
-
-
-
 -- INNER JOIN INGREDIENTES DE UM PRODUTO
 SELECT 	
 	p.prd_id AS id,	
@@ -160,3 +114,40 @@ SELECT prd_img_destaque FROM produtos
 WHERE prd_destaque = 1 
 ORDER BY RAND() 
 LIMIT 3;
+
+
+-- só traz o cliente com endereço principal
+SELECT us.usu_id, us.usu_nome, us.usu_dt_nasc, cli.cli_cel, cli.cli_pts, cid.cid_nome  
+FROM clientes cli 
+INNER JOIN usuarios us ON us.usu_id = cli.usu_id 
+INNER JOIN cliente_enderecos edcl ON edcl.usu_id = cli.usu_id 
+INNER JOIN cidades cid ON cid.cid_id = edcl.cid_id 
+WHERE us.usu_ativo = 1 AND edcl.end_principal = 1;  
+
+-- lista mesmo sem ter o endereço
+SELECT us.usu_id, us.usu_nome, us.usu_dt_nasc, cli.cli_cel, cli.cli_pts, cid.cid_nome  
+FROM clientes cli 
+INNER JOIN usuarios us ON us.usu_id = cli.usu_id 
+LEFT JOIN cliente_enderecos edcl ON edcl.usu_id = cli.usu_id  
+LEFT JOIN cidades cid ON cid.cid_id = edcl.cid_id 
+WHERE us.usu_ativo = 1;
+
+-- lista verificando o endereço principal se houver endereço cadastrado
+SELECT 
+    us.usu_nome, 
+    us.usu_dt_nasc, 
+    cl.cli_cel, 
+    cl.cli_pts, 
+    cid.cid_nome 
+FROM clientes cl
+INNER JOIN usuarios us ON us.usu_id = cl.usu_id 
+LEFT JOIN (
+    SELECT 
+        edcl.usu_id, 
+        edcl.cid_id 
+    FROM cliente_enderecos edcl 
+    WHERE edcl.end_principal = 1
+) edcl_principal ON edcl_principal.usu_id = cl.usu_id
+LEFT JOIN cidades cid ON cid.cid_id = edcl_principal.cid_id 
+WHERE us.usu_ativo = 1 
+AND cl.cli_cel = '18912233100'; -- 14911112222 14922334444 14911113111 18912233100

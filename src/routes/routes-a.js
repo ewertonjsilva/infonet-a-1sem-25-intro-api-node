@@ -15,6 +15,8 @@ router.get('/produtos', ProdutosController.listarProdutos);
 router.post('/produtos', ProdutosController.cadastrarProdutos); 
 router.patch('/produtos', ProdutosController.editarProdutos); 
 router.delete('/produtos', ProdutosController.apagarProdutos); 
+router.get('/produtos/promocao', ProdutosController.listarPromocoes); 
 router.get('/produtos/:id', ProdutosController.listarIngredientesDoProduto);
+
 
 module.exports = router;
