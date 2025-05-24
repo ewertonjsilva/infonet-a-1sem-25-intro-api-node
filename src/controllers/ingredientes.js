@@ -45,10 +45,22 @@ module.exports = {
     }, 
     async cadastrarIngredientes(request, response) {
         try {
-            return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Cadastro de ingredientes.', 
-                dados: null
+            const { nome, imagem, custoComoAdicional } = request.body;
+
+            const sql = `
+                INSERT INTO ingredientes 
+                    (ing_nome, ing_img, ing_custo_adicional) 
+                VALUES (?, ?, 0);
+            `;
+
+            const values = [nome, imagem, custoComoAdicional];
+
+            const [result] = await db.query(sql, values);
+
+            return response.status(201).json({
+                sucesso: true,
+                mensagem: 'Ingrediente adicionado com sucesso.',
+                dados: { id: result.insertId }
             });
         } catch (error) {
             return response.status(500).json({

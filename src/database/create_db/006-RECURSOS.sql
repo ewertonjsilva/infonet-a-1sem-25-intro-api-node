@@ -1,6 +1,5 @@
 -- SELECT COM TODOS OS CAMPOS
 SELECT ppd_id, ppd_hora, ppd_qtd, ppd_valor, ppd_obs, ped_id, prd_id, ppd_status FROM pedido_produtos;
-SELECT prd_id, prd_nome, prd_valor, prd_unidade, ptp_id, prd_disponivel, prd_img, prd_destaque, prd_img_destaque, prd_descricao FROM produtos;
 SELECT ptp_id, ptp_nome, ptp_icone FROM produto_tipos; 
 SELECT mes_id, mes_nome, mes_status, mes_lugares, ped_id FROM mesas; 
 SELECT ped_id, ped_data, usu_id, end_id, ped_tipo, ped_status, ped_desconto, ped_vlr_pago, ped_tp_pag, ped_pago FROM pedidos; 
@@ -10,6 +9,7 @@ SELECT usu_id, cli_cel, cli_pts FROM clientes;
 SELECT usu_id, usu_nome, usu_email, usu_cpf, usu_dt_nasc, usu_senha, usu_tipo, usu_ativo FROM usuarios;
 SELECT ing_id, ing_nome, ing_img, ing_custo_adicional FROM ingredientes;
 SELECT prd_id, ing_id, prd_ing_adicional FROM produto_ingredientes;
+SELECT prd_id, prd_nome, prd_valor, prd_unidade, ptp_id, prd_disponivel, prd_img, prd_destaque, prd_img_destaque, prd_descricao FROM produtos;
 
 -- DROP DE TODAS AS TABELAS NA ORDEM DE EXCLUSÃO
 DROP TABLE pedido_produtos;

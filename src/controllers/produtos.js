@@ -77,16 +77,16 @@ module.exports = {
         try {
 
             const { nome, valor, unidade, tipo, disponivel, descricao, img, imagemDestaque } = request.body;
-            const destaque = imagemDestaque ? 1 : 0;
-            const img_destaque = imagemDestaque ? imagemDestaque : null;
 
             if (!nome || !valor || !unidade || !tipo || typeof disponivel === 'undefined') {
                 return response.status(400).json({
                     sucesso: false,
                     mensagem: 'Campos obrigatórios estão ausentes ou inválidos.',
                 });
-            }
-            // bibliotecas como Joi (sem typescript) ou Zod (typescript) podem auxiliar nas validações.
+            } // bibliotecas como Joi (sem typescript) ou Zod (typescript) podem auxiliar nas validações.            
+
+            const destaque = imagemDestaque ? 1 : 0;
+            const img_destaque = imagemDestaque ? imagemDestaque : null;
 
             // instrução sql para inserção
             const sql = `
@@ -97,13 +97,13 @@ module.exports = {
             `;
 
             // definição de array com os parâmetros que receberam os valores do front-end
-            const values = [nome, valor, unidade, tipo, disponivel, img, destaque, img_destaque, descricao];
+            const values = [nome, parseFloat(valor), unidade, parseInt(tipo), parseInt(disponivel), img, destaque, img_destaque, descricao];
 
             // executa a instrução de inserção no banco de dados       
-            const confirmacao = await db.query(sql, values);
+            const [result] = await db.query(sql, values);
 
             // Exibe o id do registro inserido
-            const prd_id = confirmacao[0].insertId;
+            const prd_id = result.insertId;
             // Mensagem de retorno no formato JSON
             const dados = {
                 id: prd_id,
