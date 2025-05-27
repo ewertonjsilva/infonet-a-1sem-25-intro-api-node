@@ -68,6 +68,30 @@ module.exports = {
                 });
             }
 
+            // Verificar se o produto existe
+            const sqlProduto = `SELECT prd_id FROM produtos WHERE prd_id = ?`;
+            const [produtoResult] = await db.query(sqlProduto, [produto]);
+
+            if (produtoResult.length === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: 'Produto não encontrado.',
+                    dados: null
+                });
+            }
+
+            // Verificar se o ingrediente existe
+            const sqlIngrediente = `SELECT ing_id FROM ingredientes WHERE ing_id = ?`;
+            const [ingredienteResult] = await db.query(sqlIngrediente, [ingrediente]);
+
+            if (ingredienteResult.length === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: 'Ingrediente não encontrado.',
+                    dados: null
+                });
+            }
+
             // Verificar se o registro já existe
             const sqlCheck = `
                 SELECT * FROM produto_ingredientes 
@@ -107,75 +131,127 @@ module.exports = {
                 dados: error.message
             });
         }
-    },     
+    },
     async editarProdutoIngredientes(request, response) {
         try {
-            const { prd_id, ing_id } = request.params;
-            const { prd_ing_adicional, quantidade, unidade, observacao } = request.body;
-
-            const sql = `
-                UPDATE produto_ingredientes
-                SET prd_ing_adicional = ?, quantidade = ?, unidade = ?, observacao = ?
-                WHERE prd_id = ? AND ing_id = ?;
-            `;
-
-            const values = [prd_ing_adicional, quantidade, unidade, observacao, prd_id, ing_id];
-
-            const [result] = await db.query(sql, values);
-
-            if (result.affectedRows === 0) {
-                return response.status(404).json({
+            const { idProd, idIng } = request.params;
+            const { adicional } = request.body;
+    
+            // Validação dos parâmetros
+            if (!idProd || !idIng) {
+                return response.status(400).json({
                     sucesso: false,
-                    mensagem: 'Relação produto/ingrediente não encontrada.',
+                    mensagem: 'Produto e Ingrediente são obrigatórios nos parâmetros.',
                     dados: null
                 });
             }
+    
+            // Verificar se o vínculo existe
+            const [vinculo] = await db.query(
+                `SELECT * FROM produto_ingredientes WHERE prd_id = ? AND ing_id = ?`,
+                [idProd, idIng]
+            );
+    
+            if (vinculo.length === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: 'Vínculo entre produto e ingrediente não encontrado.',
+                    dados: null
+                });
+            }
+    
+            // Validar e preparar campos para atualizar
+    
+            if (adicional !== undefined) {
+                if (![0, 1].includes(adicional)) {
+                    return response.status(400).json({
+                        sucesso: false,
+                        mensagem: 'O campo adicional deve ser 0 (não é adicional) ou 1 (é adicional).',
+                        dados: null
+                    });
+                }
+            }
+    
+    
+            // Construir a query dinâmica
+            const sql = `UPDATE produto_ingredientes SET prd_ing_adicional = ? WHERE prd_id = ? AND ing_id = ?`;
+            const values = [adicional, idProd, idIng];
+    
+            await db.query(sql, values);
+    
+            // Buscar dados atualizados
+            const [vinculoAtualizado] = await db.query(
+                `SELECT * FROM produto_ingredientes WHERE prd_id = ? AND ing_id = ?`,
+                [idProd, idIng]
+            );
 
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Ingrediente do produto atualizado com sucesso.',
-                dados: null
+                mensagem: 'Vínculo atualizado com sucesso.',
+                dados: {
+                    antigo: vinculo[0],
+                    atualizado: vinculoAtualizado[0]
+                }
             });
-
+    
         } catch (error) {
             return response.status(500).json({
                 sucesso: false,
-                mensagem: 'Erro ao editar ingrediente do produto.',
+                mensagem: 'Erro ao atualizar vínculo.',
                 dados: error.message
             });
         }
-    },
+    },    
     async apagarProdutoIngredientes(request, response) {
         try {
-            const { prd_id, ing_id } = request.params;
-
-            const sql = `
-                DELETE FROM produto_ingredientes
-                WHERE prd_id = ? AND ing_id = ?;
-            `;
-
-            const values = [prd_id, ing_id];
-
-            const [result] = await db.query(sql, values);
-
-            if (result.affectedRows === 0) {
-                return response.status(404).json({
+            const { produto, ingrediente } = request.body;
+    
+            if (!produto || !ingrediente) {
+                return response.status(400).json({
                     sucesso: false,
-                    mensagem: 'Relação produto/ingrediente não encontrada.',
+                    mensagem: 'Campos obrigatórios: produto e ingrediente.',
                     dados: null
                 });
             }
-
+    
+            if (isNaN(produto) || isNaN(ingrediente)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Os campos produto e ingrediente devem ser números.',
+                    dados: null
+                });
+            }
+    
+            // Verificar se há vínculo para excluir
+            const [vinculo] = await db.query(
+                `SELECT * FROM produto_ingredientes WHERE prd_id = ? AND ing_id = ?`,
+                [produto, ingrediente]
+            );
+    
+            if (vinculo.length === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: 'Vínculo não encontrado.',
+                    dados: null
+                });
+            }
+    
+            // Executar exclusão
+            await db.query(
+                `DELETE FROM produto_ingredientes WHERE prd_id = ? AND ing_id = ?`,
+                [produto, ingrediente]
+            );
+    
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Ingrediente removido do produto com sucesso.',
-                dados: null
+                mensagem: 'Vínculo removido com sucesso.',
+                dados: vinculo[0] // retorna o que foi deletado como confirmação
             });
-
+    
         } catch (error) {
             return response.status(500).json({
                 sucesso: false,
-                mensagem: 'Erro ao excluir ingrediente do produto.',
+                mensagem: 'Erro ao excluir vínculo.',
                 dados: error.message
             });
         }

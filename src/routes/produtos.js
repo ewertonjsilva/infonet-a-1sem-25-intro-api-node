@@ -7,7 +7,7 @@ const ProdutoIngredientesController = require('../controllers/produtoIngrediente
 
 router.get('/produtos', ProdutosController.listarProdutos); 
 router.post('/produtos', ProdutosController.cadastrarProdutos); 
-router.patch('/produtos', ProdutosController.editarProdutos); 
+router.patch('/produtos/:id', ProdutosController.editarProdutos); 
 router.delete('/produtos', ProdutosController.apagarProdutos); 
 router.get('/produtos/promocao', ProdutosController.listarPromocoes); 
 router.get('/produtos/:id', ProdutosController.listarIngredientesDoProduto);
@@ -19,7 +19,7 @@ router.delete('/ingredientes', IngredientesController.apagarIngredientes);
 
 router.get('/produto-ingredientes', ProdutoIngredientesController.listarProdutoIngredientes);
 router.post('/produto-ingredientes', ProdutoIngredientesController.cadastrarProdutoIngredientes);
-router.patch('/produto-ingredientes/:prd_id/:ing_id', ProdutoIngredientesController.editarProdutoIngredientes);
+router.patch('/produto/:idProd/ingrediente/:idIng', ProdutoIngredientesController.editarProdutoIngredientes);
 router.delete('/produto-ingredientes/:prd_id/:ing_id', ProdutoIngredientesController.apagarProdutoIngredientes);
 
 module.exports = router;

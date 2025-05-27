@@ -130,10 +130,40 @@ module.exports = {
     },
     async editarProdutos(request, response) {
         try {
+
+            const { nome, valor, unidade, tipo, disponivel, imgProduto, imagemDestaque, descricao } = request.body; 
+            const prd_destaque = imagemDestaque ? 1 : 0;
+
+            const { id } = request.params; 
+
+            const sql = `
+                UPDATE produtos SET                 
+                    prd_nome = ?, prd_valor = ?, prd_unidade = ?, ptp_id = ?, prd_disponivel = ?, prd_img = ?, prd_destaque = ?, prd_img_destaque = ?, prd_descricao = ? 
+                WHERE 
+                    prd_id = ?;
+            `;
+
+            const values = [nome, valor, unidade, tipo, disponivel, imgProduto, prd_destaque, imagemDestaque, descricao, id];
+
+            const [result] = await db.query(sql, values);
+
+            if (result.affectedRows === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: `Produto com o id: ${id} não encontrado!`,
+                    dados: null
+                });
+            }
+
+            const dados = {
+                id,
+                nome,
+            };
+
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Alteração no cadastro de produto',
-                dados: null
+                dados
             });
         } catch (error) {
             return response.status(500).json({
