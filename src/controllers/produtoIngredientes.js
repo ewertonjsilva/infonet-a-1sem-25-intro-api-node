@@ -148,7 +148,7 @@ module.exports = {
     
             // Verificar se o vínculo existe
             const [vinculo] = await db.query(
-                `SELECT * FROM produto_ingredientes WHERE prd_id = ? AND ing_id = ?`,
+                `SELECT prd_id AS idProduto, ing_id AS idIngrediente, prd_ing_adicional = 1 AS adicional FROM produto_ingredientes WHERE prd_id = ? AND ing_id = ?`,
                 [idProd, idIng]
             );
     
@@ -171,7 +171,6 @@ module.exports = {
                 }
             }
     
-            // Construir a query dinâmica
             const sql = `UPDATE produto_ingredientes SET prd_ing_adicional = ? WHERE prd_id = ? AND ing_id = ?`;
             const values = [adicional, idProd, idIng];
     
@@ -179,7 +178,7 @@ module.exports = {
     
             // Buscar dados atualizados
             const [vinculoAtualizado] = await db.query(
-                `SELECT * FROM produto_ingredientes WHERE prd_id = ? AND ing_id = ?`,
+                `SELECT prd_id AS idProduto, ing_id AS idIngrediente, prd_ing_adicional = 1 AS adicional FROM produto_ingredientes WHERE prd_id = ? AND ing_id = ?`,
                 [idProd, idIng]
             );
 
