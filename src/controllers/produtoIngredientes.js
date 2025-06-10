@@ -95,15 +95,15 @@ module.exports = {
             // Verificar se o registro já existe
             const sqlCheck = `
                 SELECT * FROM produto_ingredientes 
-                WHERE prd_id = ? AND ing_id = ? AND prd_ing_adicional = ?
+                WHERE prd_id = ? AND ing_id = ?
             `;
-            const valuesCheck = [produto, ingrediente, adicional];
+            const valuesCheck = [produto, ingrediente];
             const [check] = await db.query(sqlCheck, valuesCheck);
 
             if (check.length > 0) {
                 return response.status(409).json({
                     sucesso: false,
-                    mensagem: 'Este ingrediente já está cadastrado para este produto com este status de adicional.',
+                    mensagem: 'Este ingrediente já está relacionado a este produto.',
                     dados: null
                 });
             }
@@ -161,7 +161,6 @@ module.exports = {
             }
     
             // Validar e preparar campos para atualizar
-    
             if (adicional !== undefined) {
                 if (![0, 1].includes(adicional)) {
                     return response.status(400).json({
@@ -171,7 +170,6 @@ module.exports = {
                     });
                 }
             }
-    
     
             // Construir a query dinâmica
             const sql = `UPDATE produto_ingredientes SET prd_ing_adicional = ? WHERE prd_id = ? AND ing_id = ?`;

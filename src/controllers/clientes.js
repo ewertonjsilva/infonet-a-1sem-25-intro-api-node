@@ -52,17 +52,92 @@ module.exports = {
     },
     async cadastrarClientes(request, response) {
         try {
+            const {
+                usu_nome,
+                usu_email,
+                usu_senha,
+                usu_dt_nasc,
+                usu_cpf,
+                end_logradouro,
+                end_num,
+                end_bairro,
+                end_complemento,
+                cid_id,
+                cli_cel
+            } = request.body;
 
-            const { usu_nome, usu_email, usu_senha, usu_dt_nasc, usu_cpf, end_logradouro, end_num, end_bairro, end_complemento, cid_id, cli_cel } = request.body;
+            // Verifica campos obrigatórios
+            if (
+                !usu_nome || !usu_email || !usu_senha || !usu_dt_nasc ||
+                !usu_cpf || !end_logradouro || !end_num || !end_bairro ||
+                !cid_id || !cli_cel
+            ) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Todos os campos obrigatórios devem ser preenchidos.',
+                    dados: null
+                });
+            }
 
+            // Validação de e-mail
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(usu_email)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'E-mail inválido.',
+                    dados: null
+                });
+            }
+
+            // Validação de CPF
             const cpf = cpfToInt(usu_cpf);
-            // Remove a máscara antes de enviar para a API
+            if (cpf.length !== 11 || isNaN(cpf)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'CPF inválido.',
+                    dados: null
+                });
+            }
+
+            // Validação de data de nascimento (formato básico yyyy-mm-dd)
+            const dataRegex = /^\d{4}-\d{2}-\d{2}$/;
+            if (!dataRegex.test(usu_dt_nasc)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Data de nascimento inválida. Use o formato YYYY-MM-DD.',
+                    dados: null
+                });
+            }
+
+            // Remove máscara do telefone e valida
             const telefoneSemMascara = cli_cel.replace(/\D/g, '');
+            if (telefoneSemMascara.length < 10 || telefoneSemMascara.length > 11) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Telefone inválido.',
+                    dados: null
+                });
+            }
 
-            // converter data nascimento
-            // Data no formato brasileiro
-            // const dataBrasileira = usu_dt_nasc;
+            // Verifica se o e-mail já existe
+            const [emailExiste] = await db.query(`SELECT usu_id FROM usuarios WHERE usu_email = ?`, [usu_email]);
+            if (emailExiste.length > 0) {
+                return response.status(409).json({
+                    sucesso: false,
+                    mensagem: 'E-mail já cadastrado.',
+                    dados: null
+                });
+            }
 
+            // Verifica se o CPF já existe
+            const [cpfExiste] = await db.query(`SELECT usu_id FROM usuarios WHERE usu_cpf = ?`, [cpf]);
+            if (cpfExiste.length > 0) {
+                return response.status(409).json({
+                    sucesso: false,
+                    mensagem: 'CPF já cadastrado.',
+                    dados: null
+                });
+            }
 
             const usu_tipo = 2;
             const usu_ativo = 1;
@@ -70,51 +145,40 @@ module.exports = {
             const end_principal = true;
             const end_excluido = false;
 
+            // Inserir usuário
             const sqlUsu = `
                 INSERT INTO usuarios 
                     (usu_nome, usu_email, usu_senha, usu_dt_nasc, usu_cpf, usu_tipo, usu_ativo) 
-                VALUES 
-                    (?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             `;
-
-            // definição dos dados a serem inseridos em um array
-            const valuesUsu = [usu_nome, usu_email, usu_senha, usu_dt_nasc, cpf, usu_tipo, usu_ativo];
-            // execução da instrução sql passando os parâmetros
-            const [usuarios] = await db.query(sqlUsu, valuesUsu);
-            // identificação do ID do registro inserido
+            const [usuarios] = await db.query(sqlUsu, [usu_nome, usu_email, usu_senha, usu_dt_nasc, cpf, usu_tipo, usu_ativo]);
             const usu_id = usuarios.insertId;
 
+            // Inserir cliente
             const sqlCli = `
-                INSERT INTO clientes 
-                    (usu_id, cli_cel, cli_pts) 
-                VALUES 
-                    (?, ?, ?);
+                INSERT INTO clientes (usu_id, cli_cel, cli_pts) 
+                VALUES (?, ?, ?)
             `;
+            await db.query(sqlCli, [usu_id, telefoneSemMascara, cli_pts]);
 
-            const valuesCli = [usu_id, telefoneSemMascara, cli_pts];
-
-            await db.query(sqlCli, valuesCli);
-
+            // Inserir endereço
             const sqlEnd = `
                 INSERT INTO endereco_clientes 
                     (usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) 
-                VALUES 
-                    (?, ?, ?, ?, ?, ?, ?, ?);
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
+            await db.query(sqlEnd, [usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido]);
 
-            const valuesEnd = [usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido];
-
-            await db.query(sqlEnd, valuesEnd);
-
-            return response.status(200).json({
+            return response.status(201).json({
                 sucesso: true,
                 mensagem: `Cadastro do cliente ${usu_id} realizado com sucesso!`,
-                dados: usu_id
+                dados: { usu_id }
             });
+
         } catch (error) {
             return response.status(500).json({
                 sucesso: false,
-                mensagem: 'Erro na requisição.',
+                mensagem: 'Erro interno ao cadastrar cliente.',
                 dados: error.message
             });
         }

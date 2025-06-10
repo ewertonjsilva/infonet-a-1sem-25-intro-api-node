@@ -40,10 +40,10 @@ INSERT INTO clientes (usu_id, cli_cel, cli_pts) VALUES (6, '14911113111', 0);
 INSERT INTO clientes (usu_id, cli_cel, cli_pts) VALUES (7, '18912233100', 10);
 
 -- ENDERECO CLIENTES
-INSERT INTO cliente_enderecos (end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) VALUES (1, 4, 'Rua dos Salgueiros', '645', 'Mangabeira', 'Fundos', 3884, true, false); 
-INSERT INTO cliente_enderecos (end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) VALUES (2, 5, 'Rua Melo Leitão', '1831', 'Prata', NULL, 3884, true, false); 
-INSERT INTO cliente_enderecos (end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) VALUES (3, 6, 'Rua Mundico Thomas', '39', 'Treze de Setembro', NULL, 3672, true, false); 
-INSERT INTO cliente_enderecos (end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) VALUES (4, 6, 'Rua Brasil', '390', 'Centro', NULL, 3672, false, false); 
+INSERT INTO cliente_enderecos (end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) VALUES (1, 4, 'Rua dos Salgueiros', '645', 'Mangabeira', 'Fundos', 3886, true, false); 
+INSERT INTO cliente_enderecos (end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) VALUES (2, 5, 'Rua Melo Leitão', '1831', 'Prata', NULL, 3886, true, false); 
+INSERT INTO cliente_enderecos (end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) VALUES (3, 6, 'Rua Mundico Thomas', '39', 'Treze de Setembro', NULL, 3674, true, false); 
+INSERT INTO cliente_enderecos (end_id, usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) VALUES (4, 6, 'Rua Brasil', '390', 'Centro', NULL, 3674, false, false); 
 
 -- PEDIDOS
 -- ped_tipo: 0 - mesa, 1 - retirada, 2 - entrega
@@ -78,8 +78,7 @@ INSERT INTO pedido_produtos (ppd_id, ppd_hora, ppd_qtd, ppd_valor, ppd_obs, ped_
 INSERT INTO pedido_produtos (ppd_id, ppd_hora, ppd_qtd, ppd_valor, ppd_obs, ped_id, prd_id, ppd_status) VALUES (11, '19:21', 1, 17.20, NULL, 5, 4, 3); 
 INSERT INTO pedido_produtos (ppd_id, ppd_hora, ppd_qtd, ppd_valor, ppd_obs, ped_id, prd_id, ppd_status) VALUES (12, '19:57', 2, 12.00, NULL, 5, 5, 2); 
 
--- INGREDIENTES -------------------- Pegar imagens dos ingredientes
-SELECT ing_id, ing_nome, ing_img, ing_custo_adicional FROM ingredientes;
+-- INGREDIENTES 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (1, 'Pão', 'pao.png', 0.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (2, 'Frango', 'frango.png', 7.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (3, 'Salmão', 'salmao.png', 10.00); 
@@ -107,9 +106,7 @@ INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (25, 'Isca de peixe', 'peixinho.png', 6.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (26, 'Muçarela', 'mucarela.png', 8.00); 
 
-
--- PRODUTO INGREDIENTES ---------------- adicionar de produtos que faltam - obs: nem todos produtos precisam, ex sorvete de chocolate, torta ou biscoito amanteigado
-SELECT prd_id, ing_id, prd_ing_adicional FROM produto_ingredientes;
+-- PRODUTO_INGREDIENTES
 INSERT INTO produto_ingredientes (prd_id, ing_id, prd_ing_adicional) VALUES (1, 1, false); 
 INSERT INTO produto_ingredientes (prd_id, ing_id, prd_ing_adicional) VALUES (2, 1, false); 
 INSERT INTO produto_ingredientes (prd_id, ing_id, prd_ing_adicional) VALUES (3, 1, false); 

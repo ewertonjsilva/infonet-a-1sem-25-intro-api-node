@@ -81,9 +81,22 @@ module.exports = {
             if (!nome || !valor || !unidade || !tipo || typeof disponivel === 'undefined') {
                 return response.status(400).json({
                     sucesso: false,
-                    mensagem: 'Campos obrigatórios estão ausentes ou inválidos.',
+                    mensagem: 'Campos obrigatórios estão ausentes ou inválidos.', 
+                    dados: null
                 });
             } // bibliotecas como Joi (sem typescript) ou Zod (typescript) podem auxiliar nas validações.            
+
+            // Verificar se o tipo existe
+            const sqlIngrediente = `SELECT ptp_id FROM produto_tipos WHERE ptp_id = ?`;
+            const [tipoResult] = await db.query(sqlIngrediente, [tipo]);
+
+            if (tipoResult.length === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: 'Tipo de produto não encontrado.',
+                    dados: null
+                });
+            }
 
             const destaque = imagemDestaque ? 1 : 0;
             const img_destaque = imagemDestaque ? imagemDestaque : null;
