@@ -20,6 +20,6 @@ router.delete('/ingredientes', IngredientesController.apagarIngredientes);
 router.get('/produto-ingredientes', ProdutoIngredientesController.listarProdutoIngredientes);
 router.post('/produto-ingredientes', ProdutoIngredientesController.cadastrarProdutoIngredientes);
 router.patch('/produto/:idProd/ingrediente/:idIng', ProdutoIngredientesController.editarProdutoIngredientes);
-router.delete('/produto-ingredientes/:prd_id/:ing_id', ProdutoIngredientesController.apagarProdutoIngredientes);
+router.delete('/produto/:produto/ingrediente/:ingrediente', ProdutoIngredientesController.apagarProdutoIngredientes);
 
 module.exports = router;

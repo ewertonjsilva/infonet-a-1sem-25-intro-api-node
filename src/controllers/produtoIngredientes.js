@@ -209,7 +209,7 @@ module.exports = {
     },    
     async apagarProdutoIngredientes(request, response) {
         try {
-            const { produto, ingrediente } = request.body;
+            const { produto, ingrediente } = request.params;
     
             if (!produto || !ingrediente) {
                 return response.status(400).json({
@@ -229,7 +229,11 @@ module.exports = {
     
             // Verificar se há vínculo para excluir
             const [vinculo] = await db.query(
-                `SELECT * FROM produto_ingredientes WHERE prd_id = ? AND ing_id = ?`,
+                `
+                    SELECT prd_id AS idProduto, ing_id AS idIngrediente, prd_ing_adicional = 1 AS adicional 
+                    FROM produto_ingredientes 
+                    WHERE prd_id = ? AND ing_id = ?
+                `,
                 [produto, ingrediente]
             );
     

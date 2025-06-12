@@ -1,4 +1,5 @@
 const db = require('../database/connection');
+const bcrypt = require('bcrypt');
 
 module.exports = {
     async listarUsuarios(request, response) {
@@ -31,9 +32,11 @@ module.exports = {
     },
     async cadastrarUsuarios(request, response) {
         try {
-
             const { nome, email, dt_nasc, senha, tipo, cpf } = request.body;
             const usu_ativo = 1;
+
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(senha, saltRounds);
 
             const sql = `
                 INSERT INTO usuarios 
@@ -42,24 +45,19 @@ module.exports = {
                     (?, ?, ?, ?, ?, ?, ?);
             `;
 
-            // definição dos dados a serem inseridos em um array
-            const values = [nome, email, dt_nasc, senha, tipo, usu_ativo, cpf];
+            const values = [nome, email, dt_nasc, hashedPassword, tipo, usu_ativo, cpf];
 
-            // execução da instrução sql passando os parâmetros
             const [result] = await db.query(sql, values);
-
-            // identificação do ID do registro inserido
-            const dados = {
-                id: result.insertId,
-                nome,
-                email,
-                tipo
-            };
 
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Cadastro de usuário efetuado com sucesso!',
-                dados
+                dados: {
+                    id: result.insertId,
+                    nome,
+                    email,
+                    tipo
+                }
             });
 
         } catch (error) {
@@ -271,42 +269,48 @@ module.exports = {
     },
     async login(request, response) {
         try {
-
             const { email, senha } = request.query;
-            
+
             const sql = `
                 SELECT 
-                    usu_id, usu_nome, usu_tipo 
+                    usu_id, usu_nome, usu_tipo, usu_senha 
                 FROM 
                     usuarios 
                 WHERE 
-                    usu_email = ? AND usu_senha = ? AND usu_ativo = 1;
+                    usu_email = ? AND usu_ativo = 1;
             `;
 
-            const values = [email, senha];
+            const [rows] = await db.query(sql, [email]);
 
-            const [rows] = await db.query(sql, values);
-            const nItens = rows.length;
-
-            if (nItens < 1) {
+            if (rows.length === 0) {
                 return response.status(403).json({
                     sucesso: false,
-                    mensagem: 'Login e/ou senha inválido.',
+                    mensagem: 'Email não encontrado ou usuário inativo.',
                     dados: null,
                 });
             }
 
-            const dados = rows.map(usuario => ({
-                id: usuario.usu_id, 
-                nome: usuario.usu_nome, 
-                tipo: usuario.usu_tipo
-            }));
+            const usuario = rows[0];
+            const senhaCorreta = await bcrypt.compare(senha, usuario.usu_senha);
+
+            if (!senhaCorreta) {
+                return response.status(403).json({
+                    sucesso: false,
+                    mensagem: 'Senha incorreta.',
+                    dados: null,
+                });
+            }
 
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Login efetuado com sucesso',
-                dados
+                dados: {
+                    id: usuario.usu_id,
+                    nome: usuario.usu_nome,
+                    tipo: usuario.usu_tipo
+                }
             });
+
         } catch (error) {
             return response.status(500).json({
                 sucesso: false,
@@ -317,34 +321,34 @@ module.exports = {
     },
     async atualizaSenha(request, response) {
         try {
-            // parâmetros recebidos pelo corpo da requisição
             const { usu_senha } = request.body;
-            // parâmetro recebido pela URL via params ex: /usuario/1
             const { usu_id } = request.params;
-            // instruções SQL
+    
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(usu_senha, saltRounds);
+    
             const sql = `
                 UPDATE usuarios 
                 SET usu_senha = ? 
                 WHERE usu_id = ?;
             `;
-            // preparo do array com dados que serão atualizados
-            const values = [usu_senha, usu_id];
-            // execução e obtenção de confirmação da atualização realizada
-            const [result] = await db.query(sql, values); 
-
+    
+            const [result] = await db.query(sql, [hashedPassword, usu_id]);
+    
             if (result.affectedRows === 0) {
                 return response.status(404).json({
                     sucesso: false,
-                    mensagem: `Usuário ${id} não encontrado!`,
+                    mensagem: `Usuário ${usu_id} não encontrado!`,
                     dados: null
                 });
             }
-
+    
             return response.status(200).json({
                 sucesso: true,
-                mensagem: `Usuário ${usu_id} atualizado com sucesso!`,
+                mensagem: `Senha do usuário ${usu_id} atualizada com sucesso!`,
                 dados: null
             });
+    
         } catch (error) {
             return response.status(500).json({
                 sucesso: false,

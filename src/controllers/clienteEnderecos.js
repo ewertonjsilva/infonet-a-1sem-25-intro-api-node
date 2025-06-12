@@ -37,12 +37,13 @@ module.exports = {
     async cadastrarClienteEnderecos(request, response) {
         try {
 
-            const { usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal } = request.body;
-            const end_excluido = false;
+            const { idUsuario, logradouro, num, bairro, complemento, idCidade, principal } = request.body;
+            const end_excluido = false; 
+            let end_principal = principal;
 
             // 1. Verificar se já existem endereços para este usuário
             const sqlChecarEndereco = `SELECT COUNT(*) AS total_enderecos FROM cliente_enderecos WHERE usu_id = ? AND end_excluido = false;`;
-            const [resultCheck] = await db.query(sqlChecarEndereco, [usu_id]);
+            const [resultCheck] = await db.query(sqlChecarEndereco, [idUsuario]);
             const totalEnderecos = resultCheck[0].total_enderecos;
 
             // 2. Se não houver endereços, defina o novo como principal
@@ -52,8 +53,7 @@ module.exports = {
                 // Se já houver endereços e o que está sendo cadastrado for definido como principal
                 if (end_principal === true) {
                     const sqlUpdateEnd = `UPDATE cliente_enderecos SET end_principal = 0 WHERE usu_id = ?;`;
-                    const valuesUpdateEnd = [usu_id];
-                    await db.query(sqlUpdateEnd, valuesUpdateEnd);
+                    await db.query(sqlUpdateEnd, [idUsuario]);
                 }
             }
 
@@ -64,7 +64,7 @@ module.exports = {
                     (?, ?, ?, ?, ?, ?, ?, ?);
             `;
 
-            const values = [usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido];
+            const values = [idUsuario, logradouro, num, bairro, complemento, idCidade, principal, end_excluido];
 
             const [result] = await db.query(sql, values);
 
@@ -72,7 +72,7 @@ module.exports = {
 
             return response.status(200).json({
                 sucesso: true,
-                mensagem: `Cadastro de endereço do cliente ${usu_id} realizado com sucesso.`,
+                mensagem: `Cadastro de endereço do cliente ${idUsuario} realizado com sucesso.`,
                 dados: { end_id }
             });
 
