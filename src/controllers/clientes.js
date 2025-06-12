@@ -1,5 +1,12 @@
 const db = require('../database/connection');
-const moment = require('moment');
+const moment = require('moment'); 
+
+const {
+    validarCPF,
+    validarEmail,
+    validarTelefone,
+    validarDataNascimento
+} = require('../utils/validators');
 
 function cpfToInt(cpf) {
     const cpfSemMascara = cpf.replace(/\D/g, '');
@@ -80,8 +87,7 @@ module.exports = {
             }
 
             // Validação de e-mail
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (!emailRegex.test(usu_email)) {
+            if (!validarEmail(usu_email)) {
                 return response.status(400).json({
                     sucesso: false,
                     mensagem: 'E-mail inválido.',
@@ -90,8 +96,7 @@ module.exports = {
             }
 
             // Validação de CPF
-            const cpf = cpfToInt(usu_cpf);
-            if (cpf.length !== 11 || isNaN(cpf)) {
+            if (!validarCPF(usu_cpf)) {
                 return response.status(400).json({
                     sucesso: false,
                     mensagem: 'CPF inválido.',
@@ -109,9 +114,16 @@ module.exports = {
                 });
             }
 
+            if (!validarDataNascimento(usu_dt_nasc)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'A data de nascimento não pode ser hoje!',
+                    dados: null
+                });
+            }
+
             // Remove máscara do telefone e valida
-            const telefoneSemMascara = cli_cel.replace(/\D/g, '');
-            if (telefoneSemMascara.length < 10 || telefoneSemMascara.length > 11) {
+            if (!validarTelefone(cli_cel)) {
                 return response.status(400).json({
                     sucesso: false,
                     mensagem: 'Telefone inválido.',

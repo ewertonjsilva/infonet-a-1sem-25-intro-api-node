@@ -321,11 +321,11 @@ module.exports = {
     },
     async atualizaSenha(request, response) {
         try {
-            const { usu_senha } = request.body;
-            const { usu_id } = request.params;
+            const { senha } = request.body;
+            const { id } = request.params;
     
             const saltRounds = 10;
-            const hashedPassword = await bcrypt.hash(usu_senha, saltRounds);
+            const hashedPassword = await bcrypt.hash(senha, saltRounds);
     
             const sql = `
                 UPDATE usuarios 
@@ -333,19 +333,19 @@ module.exports = {
                 WHERE usu_id = ?;
             `;
     
-            const [result] = await db.query(sql, [hashedPassword, usu_id]);
+            const [result] = await db.query(sql, [hashedPassword, id]);
     
             if (result.affectedRows === 0) {
                 return response.status(404).json({
                     sucesso: false,
-                    mensagem: `Usuário ${usu_id} não encontrado!`,
+                    mensagem: `Usuário ${id} não encontrado!`,
                     dados: null
                 });
             }
     
             return response.status(200).json({
                 sucesso: true,
-                mensagem: `Senha do usuário ${usu_id} atualizada com sucesso!`,
+                mensagem: `Senha do usuário ${id} atualizada com sucesso!`,
                 dados: null
             });
     
