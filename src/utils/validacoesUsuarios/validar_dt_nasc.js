@@ -16,3 +16,4 @@ function validarDataNascimento(data, idadeMinima = 12) {
 }
 
 module.exports = validarDataNascimento;
+

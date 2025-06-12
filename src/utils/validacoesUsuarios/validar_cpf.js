@@ -19,3 +19,4 @@ function validarCPF(cpf) {
 }
 
 module.exports = validarCPF;
+

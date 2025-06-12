@@ -1,12 +1,11 @@
 const db = require('../database/connection');
-const moment = require('moment'); 
 
 const {
     validarCPF,
     validarEmail,
     validarTelefone,
     validarDataNascimento
-} = require('../utils/validators');
+} = require('../utils/validacoesUsuarios');
 
 function cpfToInt(cpf) {
     const cpfSemMascara = cpf.replace(/\D/g, '');
@@ -60,24 +59,23 @@ module.exports = {
     async cadastrarClientes(request, response) {
         try {
             const {
-                usu_nome,
-                usu_email,
-                usu_senha,
-                usu_dt_nasc,
-                usu_cpf,
-                end_logradouro,
-                end_num,
-                end_bairro,
-                end_complemento,
-                cid_id,
-                cli_cel
+                nome,
+                email,
+                senha,
+                dataNasc,
+                cpf,
+                logradouro,
+                num,
+                bairro,
+                complemento,
+                idCidade,
+                cel
             } = request.body;
 
             // Verifica campos obrigatórios
             if (
-                !usu_nome || !usu_email || !usu_senha || !usu_dt_nasc ||
-                !usu_cpf || !end_logradouro || !end_num || !end_bairro ||
-                !cid_id || !cli_cel
+                !nome || !email || !senha || !dataNasc || !cpf ||
+                !logradouro || !num || !bairro || !idCidade || !cel
             ) {
                 return response.status(400).json({
                     sucesso: false,
@@ -87,7 +85,7 @@ module.exports = {
             }
 
             // Validação de e-mail
-            if (!validarEmail(usu_email)) {
+            if (!validarEmail(email)) {
                 return response.status(400).json({
                     sucesso: false,
                     mensagem: 'E-mail inválido.',
@@ -96,7 +94,7 @@ module.exports = {
             }
 
             // Validação de CPF
-            if (!validarCPF(usu_cpf)) {
+            if (!validarCPF(cpf)) {
                 return response.status(400).json({
                     sucesso: false,
                     mensagem: 'CPF inválido.',
@@ -104,9 +102,11 @@ module.exports = {
                 });
             }
 
+            const usu_cpf = cpfToInt(cpf);
+
             // Validação de data de nascimento (formato básico yyyy-mm-dd)
             const dataRegex = /^\d{4}-\d{2}-\d{2}$/;
-            if (!dataRegex.test(usu_dt_nasc)) {
+            if (!dataRegex.test(dataNasc)) {
                 return response.status(400).json({
                     sucesso: false,
                     mensagem: 'Data de nascimento inválida. Use o formato YYYY-MM-DD.',
@@ -114,7 +114,7 @@ module.exports = {
                 });
             }
 
-            if (!validarDataNascimento(usu_dt_nasc)) {
+            if (!validarDataNascimento(dataNasc)) {
                 return response.status(400).json({
                     sucesso: false,
                     mensagem: 'A data de nascimento não pode ser hoje!',
@@ -123,7 +123,7 @@ module.exports = {
             }
 
             // Remove máscara do telefone e valida
-            if (!validarTelefone(cli_cel)) {
+            if (!validarTelefone(cel)) {
                 return response.status(400).json({
                     sucesso: false,
                     mensagem: 'Telefone inválido.',
@@ -131,8 +131,10 @@ module.exports = {
                 });
             }
 
+            const cli_cel = cel.replace(/\D/g, '');
+
             // Verifica se o e-mail já existe
-            const [emailExiste] = await db.query(`SELECT usu_id FROM usuarios WHERE usu_email = ?`, [usu_email]);
+            const [emailExiste] = await db.query(`SELECT usu_id FROM usuarios WHERE usu_email = ?`, [email]);
             if (emailExiste.length > 0) {
                 return response.status(409).json({
                     sucesso: false,
@@ -142,7 +144,7 @@ module.exports = {
             }
 
             // Verifica se o CPF já existe
-            const [cpfExiste] = await db.query(`SELECT usu_id FROM usuarios WHERE usu_cpf = ?`, [cpf]);
+            const [cpfExiste] = await db.query(`SELECT usu_id FROM usuarios WHERE usu_cpf = ?`, [usu_cpf]);
             if (cpfExiste.length > 0) {
                 return response.status(409).json({
                     sucesso: false,
@@ -163,7 +165,7 @@ module.exports = {
                     (usu_nome, usu_email, usu_senha, usu_dt_nasc, usu_cpf, usu_tipo, usu_ativo) 
                 VALUES (?, ?, ?, ?, ?, ?, ?)
             `;
-            const [usuarios] = await db.query(sqlUsu, [usu_nome, usu_email, usu_senha, usu_dt_nasc, cpf, usu_tipo, usu_ativo]);
+            const [usuarios] = await db.query(sqlUsu, [nome, email, senha, dataNasc, usu_cpf, usu_tipo, usu_ativo]);
             const usu_id = usuarios.insertId;
 
             // Inserir cliente
@@ -171,15 +173,15 @@ module.exports = {
                 INSERT INTO clientes (usu_id, cli_cel, cli_pts) 
                 VALUES (?, ?, ?)
             `;
-            await db.query(sqlCli, [usu_id, telefoneSemMascara, cli_pts]);
+            await db.query(sqlCli, [usu_id, cli_cel, cli_pts]);
 
             // Inserir endereço
             const sqlEnd = `
-                INSERT INTO endereco_clientes 
+                INSERT INTO cliente_enderecos  
                     (usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             `;
-            await db.query(sqlEnd, [usu_id, end_logradouro, end_num, end_bairro, end_complemento, cid_id, end_principal, end_excluido]);
+            await db.query(sqlEnd, [usu_id, logradouro, num, bairro, complemento, idCidade, end_principal, end_excluido]);
 
             return response.status(201).json({
                 sucesso: true,
@@ -195,27 +197,100 @@ module.exports = {
             });
         }
     },
-    async editarClientes(request, response) {
+    async editarProdutos(request, response) {
         try {
+            // Extrai o ID do produto a ser editado da URL (ex: /produtos/:id)
+            const { id } = request.params;
 
-            const { cli_cel, cli_pts } = request.body;
-            const { usu_id } = request.params;
+            // Extrai os dados enviados no corpo da requisição (front-end)
+            const campos = request.body;
 
-            const sql = `UPDATE clientes SET cli_cel = ?, cli_pts = ? WHERE usu_id = ?;`;
+            // Verifica se o ID é válido
+            if (!id || isNaN(id)) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'ID inválido.',
+                });
+            }
 
-            const values = [cli_cel, cli_pts, usu_id];
+            // Verifica se foi enviado algum dado para atualizar
+            if (!campos || Object.keys(campos).length === 0) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Nenhum dado enviado para atualização.',
+                });
+            }
 
+            // Define os campos permitidos para atualização, mapeando os nomes do front para os nomes do banco
+            const camposValidos = {
+                nome: 'prd_nome',
+                valor: 'prd_valor',
+                unidade: 'prd_unidade',
+                tipo: 'ptp_id',
+                disponivel: 'prd_disponivel',
+                imgProduto: 'prd_img',
+                imagemDestaque: 'prd_img_destaque',
+                descricao: 'prd_descricao',
+            };
+
+            const setClauses = []; // Armazena as partes da cláusula SET da SQL
+            const values = [];     // Armazena os valores correspondentes aos campos
+
+            // Percorre cada campo recebido do front-end
+            for (const key in campos) {
+                if (camposValidos[key]) {
+                    // Se for imagemDestaque, também atualiza o campo prd_destaque (1 ou 0)
+                    if (key === 'imagemDestaque') {
+                        setClauses.push('prd_destaque = ?');
+                        values.push(campos[key] ? 1 : 0); // true vira 1, false vira 0
+                    }
+
+                    // Monta a cláusula SET: ex: prd_nome = ?, prd_valor = ? ...
+                    setClauses.push(`${camposValidos[key]} = ?`);
+                    values.push(campos[key]); // Adiciona o valor correspondente
+                }
+            }
+
+            // Verifica se algum campo válido foi processado
+            if (setClauses.length === 0) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Nenhum campo válido para atualização.',
+                });
+            }
+
+            // Monta a SQL dinamicamente com os campos válidos
+            const sql = `
+                UPDATE produtos 
+                SET ${setClauses.join(', ')} 
+                WHERE prd_id = ?;
+            `;
+
+            values.push(id); // Adiciona o ID como parâmetro da cláusula WHERE
+
+            // Executa a query com os valores dinamicamente construídos
             const [result] = await db.query(sql, values);
 
+            // Verifica se algum produto foi afetado (ou seja, se existia com o ID informado)
+            if (result.affectedRows === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: `Produto com o id ${id} não encontrado.`,
+                });
+            }
+
+            // Retorno de sucesso
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Atualizado de dados do cliente realizada com sucesso!',
-                dados: result.affectedRows
+                mensagem: 'Produto atualizado com sucesso.',
+                dados: { id }
             });
+
         } catch (error) {
+            // Captura e retorna qualquer erro interno que ocorrer
             return response.status(500).json({
                 sucesso: false,
-                mensagem: 'Erro na requisição.',
+                mensagem: 'Erro ao atualizar produto.',
                 dados: error.message
             });
         }
