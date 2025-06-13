@@ -14,7 +14,9 @@ router.delete('/usuarios/:id', UsuariosController.apagarUsuarios); // params
 router.delete('/usuarios/del/:id', UsuariosController.ocultarUsuario); // params 
 router.get('/login', UsuariosController.login); // query
 
+router.get('/clientes', ClientesController.listarClientes); 
 router.post('/clientes', ClientesController.cadastrarClientes); 
+router.patch('/clientes/:id', ClientesController.editarClientes); // params
 
 router.get('/cliente-enderecos', ClienteEnderecosController.listarClienteEnderecos); 
 router.get('/cliente-enderecos-adm', ClienteEnderecosController.listarClienteEnderecosAdm); 

@@ -81,7 +81,7 @@ module.exports = {
             if (!nome || !valor || !unidade || !tipo || typeof disponivel === 'undefined') {
                 return response.status(400).json({
                     sucesso: false,
-                    mensagem: 'Campos obrigatórios estão ausentes ou inválidos.', 
+                    mensagem: 'Campos obrigatórios estão ausentes ou inválidos.',
                     dados: null
                 });
             } // bibliotecas como Joi (sem typescript) ou Zod (typescript) podem auxiliar nas validações.            
@@ -143,45 +143,98 @@ module.exports = {
     },
     async editarProdutos(request, response) {
         try {
+            // Extrai o ID do produto a ser editado da URL (ex: /produtos/:id)
+            const { id } = request.params;
 
-            const { nome, valor, unidade, tipo, disponivel, imgProduto, imagemDestaque, descricao } = request.body; 
-            const prd_destaque = imagemDestaque ? 1 : 0;
+            // Extrai os dados enviados no corpo da requisição (front-end)
+            const campos = request.body;
 
-            const { id } = request.params; 
-
-            const sql = `
-                UPDATE produtos SET                 
-                    prd_nome = ?, prd_valor = ?, prd_unidade = ?, ptp_id = ?, prd_disponivel = ?, prd_img = ?, prd_destaque = ?, prd_img_destaque = ?, prd_descricao = ? 
-                WHERE 
-                    prd_id = ?;
-            `;
-
-            const values = [nome, valor, unidade, tipo, disponivel, imgProduto, prd_destaque, imagemDestaque, descricao, id];
-
-            const [result] = await db.query(sql, values);
-
-            if (result.affectedRows === 0) {
-                return response.status(404).json({
+            // Verifica se o ID é válido
+            if (!id || isNaN(id)) {
+                return response.status(400).json({
                     sucesso: false,
-                    mensagem: `Produto com o id: ${id} não encontrado!`,
-                    dados: null
+                    mensagem: 'ID inválido.',
                 });
             }
 
-            const dados = {
-                id,
-                nome,
+            // Verifica se foi enviado algum dado para atualizar
+            if (!campos || Object.keys(campos).length === 0) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Nenhum dado enviado para atualização.',
+                });
+            }
+
+            // Define os campos permitidos para atualização, mapeando os nomes do front para os nomes do banco
+            const camposValidos = {
+                nome: 'prd_nome',
+                valor: 'prd_valor',
+                unidade: 'prd_unidade',
+                tipo: 'ptp_id',
+                disponivel: 'prd_disponivel',
+                imgProduto: 'prd_img',
+                imagemDestaque: 'prd_img_destaque',
+                descricao: 'prd_descricao',
             };
 
+            const setClauses = []; // Armazena as partes da cláusula SET da SQL
+            const values = [];     // Armazena os valores correspondentes aos campos
+
+            // Percorre cada campo recebido do front-end
+            for (const key in campos) {
+                if (camposValidos[key]) {
+                    // Se for imagemDestaque, também atualiza o campo prd_destaque (1 ou 0)
+                    if (key === 'imagemDestaque') {
+                        setClauses.push('prd_destaque = ?');
+                        values.push(campos[key] ? 1 : 0); // true vira 1, false vira 0
+                    }
+
+                    // Monta a cláusula SET: ex: prd_nome = ?, prd_valor = ? ...
+                    setClauses.push(`${camposValidos[key]} = ?`);
+                    values.push(campos[key]); // Adiciona o valor correspondente
+                }
+            }
+
+            // Verifica se algum campo válido foi processado
+            if (setClauses.length === 0) {
+                return response.status(400).json({
+                    sucesso: false,
+                    mensagem: 'Nenhum campo válido para atualização.',
+                });
+            }
+
+            // Monta a SQL dinamicamente com os campos válidos
+            const sql = `
+                UPDATE produtos 
+                SET ${setClauses.join(', ')} 
+                WHERE prd_id = ?;
+            `;
+
+            values.push(id); // Adiciona o ID como parâmetro da cláusula WHERE
+
+            // Executa a query com os valores dinamicamente construídos
+            const [result] = await db.query(sql, values);
+
+            // Verifica se algum produto foi afetado (ou seja, se existia com o ID informado)
+            if (result.affectedRows === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: `Produto com o id ${id} não encontrado.`,
+                });
+            }
+
+            // Retorno de sucesso
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Alteração no cadastro de produto',
-                dados
+                mensagem: 'Produto atualizado com sucesso.',
+                dados: { id }
             });
+
         } catch (error) {
+            // Captura e retorna qualquer erro interno que ocorrer
             return response.status(500).json({
                 sucesso: false,
-                mensagem: 'Erro na requisição.',
+                mensagem: 'Erro ao atualizar produto.',
                 dados: error.message
             });
         }
@@ -284,14 +337,14 @@ module.exports = {
     async listarPromocoes(request, response) {
         try {
 
-            const sql= `
+            const sql = `
                 SELECT prd_img_destaque AS imgDestaque FROM produtos 
                 WHERE prd_destaque = 1 
                 ORDER BY RAND() 
                 LIMIT 3;
             `;
 
-            const [promo] = await db.query(sql); 
+            const [promo] = await db.query(sql);
 
             return response.status(200).json({
                 sucesso: true,

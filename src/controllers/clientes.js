@@ -16,7 +16,7 @@ function cpfToInt(cpf) {
 module.exports = {
     async listarClientes(request, response) {
         try {
-            const { usu_nome, usu_cpf, cli_cel } = request.body;
+            const { usu_nome, usu_cpf, cli_cel } = request.query;
 
             const pesqNome = usu_nome ? `%${usu_nome}%` : `%%`;
             const usu_ativo = 1;
@@ -30,7 +30,7 @@ module.exports = {
                 FROM 
                     clientes cl
                 INNER JOIN usuarios us ON us.usu_id = cl.usu_id 
-                INNER JOIN endereco_clientes edcl ON edcl.usu_id = cl.usu_id 
+                INNER JOIN cliente_enderecos edcl ON edcl.usu_id = cl.usu_id 
                 INNER JOIN cidades cid ON cid.cid_id = edcl.cid_id 
                 WHERE 
                     us.usu_ativo = ? AND edcl.end_principal = ? AND ${campo} ?;
@@ -197,103 +197,74 @@ module.exports = {
             });
         }
     },
-    async editarProdutos(request, response) {
+    async editarClientes(request, response) {
         try {
-            // Extrai o ID do produto a ser editado da URL (ex: /produtos/:id)
             const { id } = request.params;
+            const dados = request.body;
 
-            // Extrai os dados enviados no corpo da requisição (front-end)
-            const campos = request.body;
-
-            // Verifica se o ID é válido
-            if (!id || isNaN(id)) {
-                return response.status(400).json({
-                    sucesso: false,
-                    mensagem: 'ID inválido.',
-                });
-            }
-
-            // Verifica se foi enviado algum dado para atualizar
-            if (!campos || Object.keys(campos).length === 0) {
-                return response.status(400).json({
-                    sucesso: false,
-                    mensagem: 'Nenhum dado enviado para atualização.',
-                });
-            }
-
-            // Define os campos permitidos para atualização, mapeando os nomes do front para os nomes do banco
+            // Mapeamento dos campos válidos para o banco de dados
             const camposValidos = {
-                nome: 'prd_nome',
-                valor: 'prd_valor',
-                unidade: 'prd_unidade',
-                tipo: 'ptp_id',
-                disponivel: 'prd_disponivel',
-                imgProduto: 'prd_img',
-                imagemDestaque: 'prd_img_destaque',
-                descricao: 'prd_descricao',
+                cel: 'cli_cel',
+                pontos: 'cli_pts'
             };
 
-            const setClauses = []; // Armazena as partes da cláusula SET da SQL
-            const values = [];     // Armazena os valores correspondentes aos campos
+            // Arrays para montar a query dinamicamente
+            const setClauses = [];
+            const values = [];
 
-            // Percorre cada campo recebido do front-end
-            for (const key in campos) {
-                if (camposValidos[key]) {
-                    // Se for imagemDestaque, também atualiza o campo prd_destaque (1 ou 0)
-                    if (key === 'imagemDestaque') {
-                        setClauses.push('prd_destaque = ?');
-                        values.push(campos[key] ? 1 : 0); // true vira 1, false vira 0
-                    }
-
-                    // Monta a cláusula SET: ex: prd_nome = ?, prd_valor = ? ...
+            // Monta dinamicamente os campos a serem atualizados
+            for (const key in dados) {
+                if (camposValidos[key] && dados[key] !== undefined) {
                     setClauses.push(`${camposValidos[key]} = ?`);
-                    values.push(campos[key]); // Adiciona o valor correspondente
+                    values.push(dados[key]);
                 }
             }
 
-            // Verifica se algum campo válido foi processado
+            // Se nenhum campo válido foi enviado, retorna erro
             if (setClauses.length === 0) {
                 return response.status(400).json({
                     sucesso: false,
-                    mensagem: 'Nenhum campo válido para atualização.',
+                    mensagem: 'Nenhum campo válido enviado para atualização.',
+                    dados: null
                 });
             }
 
-            // Monta a SQL dinamicamente com os campos válidos
+            // Adiciona o ID ao final dos valores (para a cláusula WHERE)
+            values.push(id);
+
+            // Monta a query final
             const sql = `
-                UPDATE produtos 
-                SET ${setClauses.join(', ')} 
-                WHERE prd_id = ?;
+                UPDATE clientes
+                SET ${setClauses.join(', ')}
+                WHERE usu_id = ?;
             `;
 
-            values.push(id); // Adiciona o ID como parâmetro da cláusula WHERE
-
-            // Executa a query com os valores dinamicamente construídos
+            // Executa a query
             const [result] = await db.query(sql, values);
 
-            // Verifica se algum produto foi afetado (ou seja, se existia com o ID informado)
+            // Se nenhum registro foi alterado
             if (result.affectedRows === 0) {
                 return response.status(404).json({
                     sucesso: false,
-                    mensagem: `Produto com o id ${id} não encontrado.`,
+                    mensagem: `Cliente com ID ${id} não encontrado.`,
+                    dados: null
                 });
             }
 
-            // Retorno de sucesso
+            // Sucesso
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Produto atualizado com sucesso.',
-                dados: { id }
+                mensagem: 'Atualização de dados do cliente realizada com sucesso.',
+                dados: { id, alterados: result.affectedRows }
             });
 
         } catch (error) {
-            // Captura e retorna qualquer erro interno que ocorrer
             return response.status(500).json({
                 sucesso: false,
-                mensagem: 'Erro ao atualizar produto.',
+                mensagem: 'Erro ao atualizar cliente.',
                 dados: error.message
             });
         }
-    },
+    }
 }
 
