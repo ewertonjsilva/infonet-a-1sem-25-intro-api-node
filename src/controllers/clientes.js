@@ -197,7 +197,8 @@ module.exports = {
             });
         }
     },
-    async editarClientes(request, response) {
+    async editarClientes(request, response) { 
+        // receber a pontuação que deve ser adicionada e retornar dados de antes e depois da atualização
         try {
             const { id } = request.params;
             const dados = request.body;
@@ -212,13 +213,17 @@ module.exports = {
             const setClauses = [];
             const values = [];
 
-            // Monta dinamicamente os campos a serem atualizados
+            // Monta dinamicamente os campos a serem atualizados 
+            // Para cada campo válido, adiciona a string nome_do_campo_banco = ? no array setClauses
             for (const key in dados) {
+                // exemplo, se key = 'cel', e camposValidos['cel'] = 'cli_cel'
                 if (camposValidos[key] && dados[key] !== undefined) {
                     setClauses.push(`${camposValidos[key]} = ?`);
                     values.push(dados[key]);
                 }
             }
+            // Depois que todos os campos foram processados (se todos os campos forem passados), temos: 
+            // setClauses = ['cli_cel = ?', 'cli_pts = ?'];
 
             // Se nenhum campo válido foi enviado, retorna erro
             if (setClauses.length === 0) {
@@ -232,7 +237,8 @@ module.exports = {
             // Adiciona o ID ao final dos valores (para a cláusula WHERE)
             values.push(id);
 
-            // Monta a query final
+            // Monta a query final        
+            // SET cli_cel = ?, cli_pts = ? 
             const sql = `
                 UPDATE clientes
                 SET ${setClauses.join(', ')}
@@ -255,7 +261,7 @@ module.exports = {
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Atualização de dados do cliente realizada com sucesso.',
-                dados: { id, alterados: result.affectedRows }
+                dados: { id }
             });
 
         } catch (error) {
