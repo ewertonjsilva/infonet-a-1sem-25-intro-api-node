@@ -44,6 +44,7 @@ module.exports = {
         }
     }, 
     async cadastrarIngredientes(request, response) {
+        // imagem aqui
         try {
             const { nome, imagem, custoComoAdicional } = request.body;
 
