@@ -57,6 +57,13 @@ module.exports = {
                 imgProduto: gerarUrl(produto.prd_img, 'produtos', 'sem.jpg'),
                 descricao: produto.prd_descricao
             }));
+            
+            // ALTERNATIVA SEM MEXER COM TODOS OS CAMPOS
+            // const dados = produtos.map(produto => ({
+            //     ...produto,
+            //     ptp_icone: gerarUrl(produto.ptp_icone, 'produtoTipos', 'semIcone.svg'), 
+            //     prd_img: gerarUrl(produto.prd_img, 'produtos', 'sem.jpg')
+            // }));
 
             response.setHeader('X-Total-Count', total);
             return response.status(200).json({
