@@ -1,4 +1,5 @@
 require('dotenv').config();
+
 const express = require('express'); 
 const cors = require('cors');
 
@@ -8,6 +9,9 @@ const app = express();
 app.use(cors()); 
 app.use(express.json()); 
 app.use(router);
+
+// tornar a pasta public acessível externamente
+app.use('/public', express.static('public'));
 
 const porta = process.env.PORT || 3333;
 

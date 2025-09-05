@@ -1,4 +1,6 @@
+
 const db = require('../database/connection');
+const { gerarUrl } = require('../utils/gerarUrl');
 
 module.exports = {
     async listarProdutos(request, response) {
@@ -51,8 +53,8 @@ module.exports = {
                 nome: produto.prd_nome,
                 valor: produto.prd_valor,
                 unidade: produto.prd_unidade,
-                icone: produto.ptp_icone,
-                imgProduto: produto.prd_img,
+                icone: gerarUrl(produto.ptp_icone, 'produtoTipos', 'semIcone.svg'),
+                imgProduto: gerarUrl(produto.prd_img, 'produtos', 'sem.jpg'),
                 descricao: produto.prd_descricao
             }));
 

@@ -5,8 +5,10 @@ const ProdutosController = require('../controllers/produtos');
 const IngredientesController = require('../controllers/ingredientes'); 
 const ProdutoIngredientesController = require('../controllers/produtoIngredientes');
 
+const uploadImgProduto = require('../middleware/uploadImgProduto');
+
 router.get('/produtos', ProdutosController.listarProdutos); 
-router.post('/produtos', ProdutosController.cadastrarProdutos); 
+router.post('/produtos', uploadImgProduto.single('img'), ProdutosController.cadastrarProdutos); 
 router.patch('/produtos/:id', ProdutosController.editarProdutos); 
 router.delete('/produtos', ProdutosController.apagarProdutos); 
 router.get('/produtos/promocao', ProdutosController.listarPromocoes); 
@@ -23,3 +25,4 @@ router.patch('/produto/:idProd/ingrediente/:idIng', ProdutoIngredientesControlle
 router.delete('/produto/:produto/ingrediente/:ingrediente', ProdutoIngredientesController.apagarProdutoIngredientes);
 
 module.exports = router;
+
