@@ -1,12 +1,11 @@
 const db = require('../database/connection');
-
-// var fse = require('fs-extra');
+const { gerarUrl } = require('../utils/gerarUrl');
 
 module.exports = {
     async listarIngredientes(request, response) {
         try {
-            const { nome } = request.query;             
-            
+            const { nome } = request.query;
+
             const ing_nome = nome ? `%${nome}%` : `%`;
             const sql = `
                 SELECT 
@@ -16,24 +15,30 @@ module.exports = {
                 WHERE 
                     ing_nome like ?;
             `;
-            
+
             const values = [ing_nome];
-            
+
             const [rows] = await db.query(sql, values);
-            const nItens = rows.length; 
+            const nItens = rows.length;
 
             const dados = rows.map(ingrediente => ({
-                id: ingrediente.ing_id, 
-                nome: ingrediente.ing_nome, 
-                img: ingrediente.ing_img, 
-                custo_adicional: ingrediente.ing_custo_adicional 
+                id: ingrediente.ing_id,
+                nome: ingrediente.ing_nome,
+                img: gerarUrl(ingrediente.ing_img, 'ingredientes', 'sem.svg'),
+                custo_adicional: ingrediente.ing_custo_adicional
             }));
+
+            // ALTERNATIVA SEM MEXER COM TODOS OS CAMPOS
+            // const dados = rows.map(ingrediente => ({
+            //     ...ingrediente,
+            //     ing_img: gerarUrl(ingrediente.ing_img, 'ingredientes', 'sem.jpg')
+            // }));
 
             return response.status(200).json({
                 sucesso: true,
                 mensagem: 'Lista de ingredientes.',
-                nItens, 
-                dados                
+                nItens,
+                dados
             });
         } catch (error) {
             return response.status(500).json({
@@ -42,19 +47,19 @@ module.exports = {
                 dados: error.message
             });
         }
-    }, 
-    async cadastrarIngredientes(request, response) {
-        // imagem aqui
+    },
+    async cadastrarIngredientes(request, response) {        
         try {
-            const { nome, imagem, custoComoAdicional } = request.body;
+            const { nome, custoComoAdicional } = request.body; 
+            const imagem = request.file;
 
             const sql = `
                 INSERT INTO ingredientes 
                     (ing_nome, ing_img, ing_custo_adicional) 
-                VALUES (?, ?, 0);
+                VALUES (?, ?, ?);
             `;
 
-            const values = [nome, imagem, custoComoAdicional];
+            const values = [nome, imagem.filename, custoComoAdicional];
 
             const [result] = await db.query(sql, values);
 
@@ -70,12 +75,12 @@ module.exports = {
                 dados: error.message
             });
         }
-    }, 
+    },
     async editarIngredientes(request, response) {
         try {
             return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Editar ingredientes.', 
+                sucesso: true,
+                mensagem: 'Editar ingredientes.',
                 dados: null
             });
         } catch (error) {
@@ -85,12 +90,12 @@ module.exports = {
                 dados: error.message
             });
         }
-    }, 
+    },
     async apagarIngredientes(request, response) {
         try {
             return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Apagar ingredientes.', 
+                sucesso: true,
+                mensagem: 'Apagar ingredientes.',
                 dados: null
             });
         } catch (error) {
@@ -100,18 +105,19 @@ module.exports = {
                 dados: error.message
             });
         }
-    }, 
+    },
     async uploadImagem(request, response) {
         try {
-            const img = request.file.filename; 
+            const img = request.file.filename;
             return response.status(200).json(
                 {
-                    sucesso: true, 
+                    sucesso: true,
                     dados: img
                 }
             )
         } catch (error) {
-            
+
         }
     }
 }
+

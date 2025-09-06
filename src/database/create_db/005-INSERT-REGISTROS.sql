@@ -79,31 +79,31 @@ INSERT INTO pedido_produtos (ppd_id, ppd_hora, ppd_qtd, ppd_valor, ppd_obs, ped_
 INSERT INTO pedido_produtos (ppd_id, ppd_hora, ppd_qtd, ppd_valor, ppd_obs, ped_id, prd_id, ppd_status) VALUES (12, '19:57', 2, 12.00, NULL, 5, 5, 2); 
 
 -- INGREDIENTES 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (1, 'Pão', 'pao.png', 0.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (2, 'Frango', 'frango.png', 7.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (1, 'Pão', 'pao.jpeg', 0.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (2, 'Frango', 'frango.jpg', 7.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (3, 'Salmão', 'salmao.png', 10.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (4, 'Alface', 'alface.png', 4.50); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (5, 'Rúcula', 'rucula.png', 4.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (6, 'Tomate', 'tomate.png', 5.25); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (5, 'Rúcula', 'rucula.jpg', 4.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (6, 'Tomate', 'tomate.jpg', 5.25); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (7, 'Ervilha', 'ervilha.png', 6.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (8, 'Milho', 'milho.png', 5.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (8, 'Milho', 'milho.jpg', 5.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (9, 'Pepino', 'pepino.png', 4.50); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (10, 'Cebola', 'cebola.png', 4.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (10, 'Cebola', 'cebola.jpg', 4.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (11, 'Cebola Roxa', 'cebolaRoxa.png', 4.80); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (12, 'Aspargo', 'aspargo.png', 5.90); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (13, 'Batata', 'batata.png', 25.40); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (13, 'Batata', 'batata.jpg', 25.40); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (14, 'Uva', 'uva.png', 0.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (15, 'Abacaxi', 'abacaxi.png', 0.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (16, 'Limão', 'limao.png', 0.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (15, 'Abacaxi', 'abacaxi.jpg', 0.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (16, 'Limão', 'limao.jpg', 0.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (17, 'Laranja', 'laranja.png', 0.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (18, 'Bacon', 'bacon.png', 6.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (19, 'Couve', 'couve.png', 5.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (20, 'Carne bovina', 'carneBovina.png', 8.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (19, 'Couve', 'couve.jpg', 5.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (20, 'Carne bovina', 'carneBovina.jpg', 8.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (21, 'Carne suína', 'carneSuina.png', 7.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (22, 'Sal', 'sal.png', 2.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (23, 'Açucar', 'acucar.png', 3.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (24, 'Gelo', 'gelo.png', 3.00); 
-INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (25, 'Isca de peixe', 'peixinho.png', 6.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (22, 'Sal', 'sal.jpg', 2.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (23, 'Açucar', 'acucar.jpg', 3.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (24, 'Gelo', 'gelo.jpeg', 3.00); 
+INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (25, 'Isca de peixe', 'peixinho.jpg', 6.00); 
 INSERT INTO ingredientes (ing_id, ing_nome, ing_img, ing_custo_adicional) VALUES (26, 'Muçarela', 'mucarela.png', 8.00); 
 
 -- PRODUTO_INGREDIENTES

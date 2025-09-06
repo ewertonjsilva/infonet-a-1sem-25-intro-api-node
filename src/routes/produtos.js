@@ -5,17 +5,23 @@ const ProdutosController = require('../controllers/produtos');
 const IngredientesController = require('../controllers/ingredientes'); 
 const ProdutoIngredientesController = require('../controllers/produtoIngredientes');
 
-const uploadImgProduto = require('../middleware/uploadImgProduto');
+const uploadImage = require('../middleware/uploadHelper');
+
+// Middleware configurado para a pasta 'ingredientes'
+const uploadIngredientes = uploadImage('ingredientes');
+
+// Middleware configurado para a pasta 'produtos'
+const uploadProduto = uploadImage('produtos');
 
 router.get('/produtos', ProdutosController.listarProdutos); 
-router.post('/produtos', uploadImgProduto.single('img'), ProdutosController.cadastrarProdutos); 
+router.post('/produtos', uploadProduto.single('img'), ProdutosController.cadastrarProdutos); 
 router.patch('/produtos/:id', ProdutosController.editarProdutos); 
 router.delete('/produtos', ProdutosController.apagarProdutos); 
 router.get('/produtos/promocao', ProdutosController.listarPromocoes); 
 router.get('/produtos/:id', ProdutosController.listarIngredientesDoProduto);
 
 router.get('/ingredientes', IngredientesController.listarIngredientes); 
-router.post('/ingredientes', IngredientesController.cadastrarIngredientes); 
+router.post('/ingredientes', uploadIngredientes.single('img'), IngredientesController.cadastrarIngredientes); 
 router.patch('/ingredientes', IngredientesController.editarIngredientes); 
 router.delete('/ingredientes', IngredientesController.apagarIngredientes); 
 
